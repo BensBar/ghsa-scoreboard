@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#0a0e17" />
-  <meta name="description" content="Live GHSA football scoreboard — pinned Georgia high schools + top statewide games." />
+  <meta name="description" content="Live GHSA football scoreboard — favorite Georgia high schools + top statewide games." />
   <title>GHSA Scoreboard</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,10 +18,11 @@
       <span class="brand-mark">GHSA</span>
       <div>
         <h1>Football Scoreboard</h1>
-        <p class="sub">Pinned schools · Top games · Auto-refresh</p>
+        <p class="sub">Your favorites · Top games · Auto-refresh</p>
       </div>
     </div>
     <div class="meta">
+      <button type="button" id="edit-favorites" class="btn-edit">Edit favorites</button>
       <span id="live-pill" class="pill">LIVE</span>
       <time id="updated" datetime="">—</time>
     </div>
@@ -30,8 +31,8 @@
   <main>
     <section class="section" aria-labelledby="pinned-heading">
       <div class="section-head">
-        <h2 id="pinned-heading">Pinned schools</h2>
-        <p>Always on — Chattahoochee, Johns Creek, Carrollton, Central of Carrollton</p>
+        <h2 id="pinned-heading">Your favorites</h2>
+        <p id="pinned-sub">Pick teams to pin them here</p>
       </div>
       <div id="pinned" class="pinned-grid" role="list"></div>
     </section>
@@ -49,6 +50,20 @@
     <p>Data from <code>scores.json</code> · Refresh every 45s · Sources: MaxPreps / GHSA (see README)</p>
     <p class="muted">Not affiliated with GHSA. Scores may lag live play.</p>
   </footer>
+
+  <div id="favorites-picker" class="picker-overlay" hidden aria-hidden="true">
+    <div class="picker-panel" role="dialog" aria-modal="true" aria-labelledby="picker-title">
+      <div class="picker-head">
+        <h2 id="picker-title">Pick your favorite teams</h2>
+        <p>Select the Georgia HS football schools you want pinned. Suggested teams are pre-checked — hit Save when ready.</p>
+      </div>
+      <div id="picker-grid" class="picker-grid" role="listbox" aria-multiselectable="true" aria-label="Schools"></div>
+      <div class="picker-actions">
+        <p id="picker-count" class="picker-count">0 selected</p>
+        <button type="button" id="picker-save" class="btn-save">Save favorites</button>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/app.js"></script>
 </body>

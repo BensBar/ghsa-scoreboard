@@ -65,7 +65,7 @@ def try_parse_maxpreps(html: str) -> dict | None:
 def main() -> int:
     schools = json.loads(SCHOOLS_PATH.read_text())
     scores = json.loads(SCORES_PATH.read_text())
-    by_id = {s["id"]: s for s in schools.get("pinned", [])}
+    by_id = {s["id"]: s for s in schools.get("schools", schools.get("pinned", []))}
 
     changed = False
     for game in scores.get("pinned", []):

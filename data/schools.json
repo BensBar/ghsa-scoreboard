@@ -1,5 +1,5 @@
 {
-  "pinned": [
+  "schools": [
     {
       "id": "chattahoochee",
       "name": "Chattahoochee",
@@ -51,7 +51,93 @@
       "gpb": "https://www.gpb.org/sports/football/central-carroll",
       "ghsaLabel": "Central, Carroll",
       "notes": "Central High School / Central-Carrollton Lions. DIFFERENT from Carrollton HS Trojans. Display label must be exactly 'Central of Carrollton'."
+    },
+    {
+      "id": "buford",
+      "name": "Buford",
+      "city": "Buford, GA"
+    },
+    {
+      "id": "gainesville",
+      "name": "Gainesville",
+      "city": "Gainesville, GA"
+    },
+    {
+      "id": "mill-creek",
+      "name": "Mill Creek",
+      "city": "Hoschton, GA"
+    },
+    {
+      "id": "north-gwinnett",
+      "name": "North Gwinnett",
+      "city": "Suwanee, GA"
+    },
+    {
+      "id": "collins-hill",
+      "name": "Collins Hill",
+      "city": "Suwanee, GA"
+    },
+    {
+      "id": "grayson",
+      "name": "Grayson",
+      "city": "Loganville, GA"
+    },
+    {
+      "id": "colquitt-county",
+      "name": "Colquitt County",
+      "city": "Moultrie, GA"
+    },
+    {
+      "id": "valdosta",
+      "name": "Valdosta",
+      "city": "Valdosta, GA"
+    },
+    {
+      "id": "lowndes",
+      "name": "Lowndes",
+      "city": "Valdosta, GA"
+    },
+    {
+      "id": "lee-county",
+      "name": "Lee County",
+      "city": "Leesburg, GA"
+    },
+    {
+      "id": "milton",
+      "name": "Milton",
+      "city": "Milton, GA"
+    },
+    {
+      "id": "roswell",
+      "name": "Roswell",
+      "city": "Roswell, GA"
+    },
+    {
+      "id": "norcross",
+      "name": "Norcross",
+      "city": "Norcross, GA"
+    },
+    {
+      "id": "peachtree-ridge",
+      "name": "Peachtree Ridge",
+      "city": "Suwanee, GA"
+    },
+    {
+      "id": "creekside",
+      "name": "Creekside",
+      "city": "Fairburn, GA"
+    },
+    {
+      "id": "jefferson",
+      "name": "Jefferson",
+      "city": "Jefferson, GA"
     }
+  ],
+  "suggested": [
+    "chattahoochee",
+    "johns-creek",
+    "carrollton",
+    "central-of-carrollton"
   ],
   "sources": {
     "maxpreps": "https://www.maxpreps.com/ga/football/",
