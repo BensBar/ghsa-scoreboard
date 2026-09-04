@@ -57,15 +57,25 @@ The UI polls `public/scores.json` every **45 seconds**.
 
 ## Deploy (GitHub Pages)
 
-Static site — no build step. Workflow: [`.github/workflows/pages.yml`](.github/workflows/pages.yml)
+Static site — no build step. **Pages is enabled** from `main` / root (legacy source).
 
-Pages source should be **GitHub Actions**. After the first successful run:
+**Live:** https://bensbar.github.io/ghsa-scoreboard/
 
-https://bensbar.github.io/ghsa-scoreboard/
+Optional Actions workflows (copy into `.github/workflows/` if your token has the `workflow` scope):
+
+- [`deploy/pages.yml.example`](deploy/pages.yml.example) — Actions-based Pages deploy
+- [`deploy/refresh-scores.yml.example`](deploy/refresh-scores.yml.example) — Friday-night score refresh skeleton
+
+```bash
+mkdir -p .github/workflows
+cp deploy/pages.yml.example .github/workflows/pages.yml
+cp deploy/refresh-scores.yml.example .github/workflows/refresh-scores.yml
+# then push with a token that includes the workflow scope
+```
 
 ## Score refresh Action
 
-[`.github/workflows/refresh-scores.yml`](.github/workflows/refresh-scores.yml) runs `scripts/refresh_scores.py` on a Friday-night cron + `workflow_dispatch`.
+The example workflow runs `scripts/refresh_scores.py` on a Friday-night cron + `workflow_dispatch`.
 
 **Reality check:** MaxPreps / ghsa.net pages are JS-heavy and scrape-fragile. The script is a best-effort skeleton: it fetches schedule URLs from `data/schools.json`, tries light parsing, and always rewrites `updatedAt`. If parsing fails, **manually edit** `public/scores.json` (or improve the scraper) and push — the site will pick it up on the next poll / Pages deploy.
 
