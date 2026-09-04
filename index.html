@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e17" />
+  <meta name="description" content="Live GHSA football scoreboard — pinned Georgia high schools + top statewide games." />
+  <title>GHSA Scoreboard</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark">GHSA</span>
+      <div>
+        <h1>Football Scoreboard</h1>
+        <p class="sub">Pinned schools · Top games · Auto-refresh</p>
+      </div>
+    </div>
+    <div class="meta">
+      <span id="live-pill" class="pill">LIVE</span>
+      <time id="updated" datetime="">—</time>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" aria-labelledby="pinned-heading">
+      <div class="section-head">
+        <h2 id="pinned-heading">Pinned schools</h2>
+        <p>Always on — Chattahoochee, Johns Creek, Carrollton, Central of Carrollton</p>
+      </div>
+      <div id="pinned" class="pinned-grid" role="list"></div>
+    </section>
+
+    <section class="section" aria-labelledby="top-heading">
+      <div class="section-head">
+        <h2 id="top-heading">Top games</h2>
+        <p>Statewide notables &amp; ranked matchups</p>
+      </div>
+      <div id="top-games" class="games-list" role="list"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Data from <code>scores.json</code> · Refresh every 45s · Sources: MaxPreps / GHSA (see README)</p>
+    <p class="muted">Not affiliated with GHSA. Scores may lag live play.</p>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

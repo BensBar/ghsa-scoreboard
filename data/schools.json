@@ -1,0 +1,61 @@
+{
+  "pinned": [
+    {
+      "id": "chattahoochee",
+      "name": "Chattahoochee",
+      "mascot": "Cougars",
+      "city": "Johns Creek / Alpharetta, GA",
+      "ghsaClass": "AAAAA",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/alpharetta/chattahoochee-cougars/football/",
+        "schedule": "https://www.maxpreps.com/ga/alpharetta/chattahoochee-cougars/football/schedule/"
+      },
+      "gpb": "https://www.gpb.org/sports/football/chattahoochee",
+      "notes": "Chattahoochee High School — often listed under Alpharetta on MaxPreps; campus in Johns Creek."
+    },
+    {
+      "id": "johns-creek",
+      "name": "Johns Creek",
+      "mascot": "Gladiators",
+      "city": "Johns Creek, GA",
+      "ghsaClass": "AAAAAA",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/johns-creek/johns-creek-gladiators/football/",
+        "schedule": "https://www.maxpreps.com/ga/johns-creek/johns-creek-gladiators/football/schedule/"
+      },
+      "gpb": "https://www.gpb.org/sports/football/johns-creek"
+    },
+    {
+      "id": "carrollton",
+      "name": "Carrollton",
+      "mascot": "Trojans",
+      "city": "Carrollton, GA",
+      "ghsaClass": "AAAAAAA",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/carrollton/carrollton-trojans/football/",
+        "schedule": "https://www.maxpreps.com/ga/carrollton/carrollton-trojans/football/schedule/"
+      },
+      "gpb": "https://www.gpb.org/sports/football/carrollton",
+      "notes": "Carrollton High School Trojans — NOT Central High School."
+    },
+    {
+      "id": "central-of-carrollton",
+      "name": "Central of Carrollton",
+      "mascot": "Lions",
+      "city": "Carrollton, GA",
+      "ghsaClass": "AAAAA",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/carrollton/central-lions/football/",
+        "schedule": "https://www.maxpreps.com/ga/carrollton/central-lions/football/schedule/"
+      },
+      "gpb": "https://www.gpb.org/sports/football/central-carroll",
+      "ghsaLabel": "Central, Carroll",
+      "notes": "Central High School / Central-Carrollton Lions. DIFFERENT from Carrollton HS Trojans. Display label must be exactly 'Central of Carrollton'."
+    }
+  ],
+  "sources": {
+    "maxpreps": "https://www.maxpreps.com/ga/football/",
+    "ghsa": "https://www.ghsa.net/",
+    "gpb": "https://www.gpb.org/sports/football"
+  }
+}

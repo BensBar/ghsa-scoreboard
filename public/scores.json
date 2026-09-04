@@ -1,0 +1,107 @@
+{
+  "updatedAt": "2026-09-04T23:40:00Z",
+  "pinned": [
+    {
+      "id": "chattahoochee",
+      "name": "Chattahoochee",
+      "opponent": "Forsyth Central",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:30:00Z",
+      "isHome": true
+    },
+    {
+      "id": "johns-creek",
+      "name": "Johns Creek",
+      "opponent": "Mountain View",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:30:00Z",
+      "isHome": true
+    },
+    {
+      "id": "carrollton",
+      "name": "Carrollton",
+      "opponent": "Catholic (Baton Rouge, LA)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-05T00:00:00Z",
+      "isHome": false
+    },
+    {
+      "id": "central-of-carrollton",
+      "name": "Central of Carrollton",
+      "opponent": "East Paulding",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:30:00Z",
+      "isHome": false
+    }
+  ],
+  "topGames": [
+    {
+      "id": "buford-mallard-creek",
+      "name": "Buford",
+      "opponent": "Mallard Creek (NC)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:00:00Z",
+      "isHome": false
+    },
+    {
+      "id": "carrollton-catholic",
+      "name": "Carrollton",
+      "opponent": "Catholic (Baton Rouge, LA)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-05T00:00:00Z",
+      "isHome": false
+    },
+    {
+      "id": "gainesville-esl",
+      "name": "Gainesville",
+      "opponent": "East St. Louis (IL)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-05T00:00:00Z",
+      "isHome": false
+    },
+    {
+      "id": "creekside-stjoe",
+      "name": "Creekside",
+      "opponent": "St. Joseph Regional (NJ)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:00:00Z",
+      "isHome": false
+    },
+    {
+      "id": "jefferson-peach",
+      "name": "Jefferson",
+      "opponent": "Peach County",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:30:00Z",
+      "isHome": false
+    },
+    {
+      "id": "warner-robins-northside",
+      "name": "Warner Robins",
+      "opponent": "Northside (Warner Robins)",
+      "homeScore": null,
+      "awayScore": null,
+      "status": "scheduled",
+      "kickoff": "2026-09-04T23:30:00Z",
+      "isHome": false
+    }
+  ]
+}
