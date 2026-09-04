@@ -14,7 +14,9 @@ const STATUS_CLASS = {
   OT: "status-ot",
 };
 
-let schoolsCatalog = { schools: [], suggested: [] };
+let schoolsCatalog = { schools: [], opponents: [], suggested: [] };
+/** @type {Record<string, any>} */
+let teamIndex = {};
 let latestScores = null;
 /** @type {string[]|null} */
 let pendingSelection = null;
@@ -26,8 +28,7 @@ function isLiveStatus(status) {
 function formatKickoff(iso) {
   if (!iso) return "";
   try {
-    const d = new Date(iso);
-    return d.toLocaleString("en-US", {
+    return new Date(iso).toLocaleString("en-US", {
       timeZone: "America/New_York",
       weekday: "short",
       month: "short",
@@ -44,8 +45,7 @@ function formatKickoff(iso) {
 function formatUpdated(iso) {
   if (!iso) return "Updated —";
   try {
-    const d = new Date(iso);
-    return "Updated " + d.toLocaleString("en-US", {
+    return "Updated " + new Date(iso).toLocaleString("en-US", {
       timeZone: "America/New_York",
       month: "short",
       day: "numeric",
@@ -98,8 +98,32 @@ function saveFavorites(ids) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
 }
 
-function schoolById(id) {
-  return (schoolsCatalog.schools || []).find((s) => s.id === id);
+function rebuildTeamIndex() {
+  teamIndex = {};
+  for (const s of schoolsCatalog.schools || []) {
+    teamIndex[s.id] = s;
+  }
+  for (const o of schoolsCatalog.opponents || []) {
+    teamIndex[o.id] = o;
+  }
+}
+
+function teamMeta(id, fallbackName) {
+  const t = (id && teamIndex[id]) || null;
+  const color = t?.primaryColor || "#3dff9a";
+  const logo = t?.logo || (id ? `assets/logos/${id}.png` : null);
+  const name = t?.name || fallbackName || id || "Team";
+  return { id: id || null, name, color, logo };
+}
+
+function logoImg(meta, extraClass = "") {
+  const src = meta.logo || "";
+  const alt = escapeHtml(meta.name);
+  const color = escapeHtml(meta.color || "#3dff9a");
+  if (!src) {
+    return `<div class="logo-fallback ${extraClass}" style="--team:${color}" aria-hidden="true">${escapeHtml((meta.name || "?").slice(0, 2).toUpperCase())}</div>`;
+  }
+  return `<img class="team-logo ${extraClass}" src="${escapeHtml(src)}" alt="${alt}" loading="lazy" style="--team:${color}" onerror="this.classList.add('logo-broken');this.replaceWith(Object.assign(document.createElement('div'),{className:'logo-fallback ${extraClass}',style:'--team:${color}',textContent:'${escapeHtml((meta.name || "?").slice(0, 2).toUpperCase())}'}))" />`;
 }
 
 function renderPinnedFromFavorites(data, favoriteIds) {
@@ -114,36 +138,35 @@ function renderPinnedFromFavorites(data, favoriteIds) {
   }
 
   if (sub) {
-    const names = favoriteIds
-      .map((id) => schoolById(id)?.name || gamesById[id]?.name || id)
-      .join(", ");
-    sub.textContent = names;
+    sub.textContent = favoriteIds
+      .map((id) => teamMeta(id).name)
+      .join(" · ");
   }
 
   root.innerHTML = favoriteIds.map((id) => {
     const game = gamesById[id];
+    const us = teamMeta(id);
     if (!game) {
-      const school = schoolById(id);
-      const name = school?.name || id;
       return `
-        <article class="card card-empty" role="listitem" data-id="${escapeHtml(id)}">
-          <div class="card-top">
-            <div>
-              <h3 class="school-name">${escapeHtml(name)}</h3>
-              <p class="vs-line muted-line">No game listed</p>
-            </div>
-            <span class="status-badge status-scheduled">BYE</span>
+        <article class="card card-empty stadium-card" role="listitem" data-id="${escapeHtml(id)}" style="--team:${escapeHtml(us.color)}">
+          <div class="card-glow" aria-hidden="true"></div>
+          <div class="card-logos solo">
+            ${logoImg(us, "logo-xl")}
           </div>
-          <p class="kickoff">This school has no entry in scores.json for this week.</p>
+          <h3 class="school-name">${escapeHtml(us.name)}</h3>
+          <p class="vs-line muted-line">No game listed</p>
+          <span class="status-badge status-scheduled">BYE</span>
         </article>`;
     }
 
+    const opp = teamMeta(game.opponentId, game.opponent);
     const { ours, theirs } = displayScores(game);
     const ha = game.isHome ? "HOME" : "AWAY";
     return `
-      <article class="card" role="listitem" data-id="${escapeHtml(game.id)}">
+      <article class="card stadium-card" role="listitem" data-id="${escapeHtml(game.id)}" style="--team:${escapeHtml(us.color)}; --opp:${escapeHtml(opp.color)}">
+        <div class="card-glow" aria-hidden="true"></div>
         <div class="card-top">
-          <div>
+          <div class="matchup-names">
             <h3 class="school-name">${escapeHtml(game.name)}</h3>
             <p class="vs-line">vs <strong>${escapeHtml(game.opponent)}</strong>
               <span class="ha-tag">${ha}</span>
@@ -151,20 +174,22 @@ function renderPinnedFromFavorites(data, favoriteIds) {
           </div>
           ${statusBadge(game.status)}
         </div>
-        <div class="scoreboard">
+        <div class="scoreboard neon-board">
           <div class="team-col">
-            <div class="team-label">Us</div>
+            ${logoImg(us, "logo-hero")}
             <div class="team-name">${escapeHtml(game.name)}</div>
-            <div class="score ours">${scoreText(ours)}</div>
+            <div class="score ours glow-score">${scoreText(ours)}</div>
           </div>
-          <div class="mid">VS</div>
+          <div class="mid">
+            <span class="mid-vs">VS</span>
+            <span class="mid-kick">${formatKickoff(game.kickoff)}</span>
+          </div>
           <div class="team-col right">
-            <div class="team-label">Opp</div>
+            ${logoImg(opp, "logo-hero")}
             <div class="team-name">${escapeHtml(game.opponent)}</div>
-            <div class="score theirs">${scoreText(theirs)}</div>
+            <div class="score theirs glow-score">${scoreText(theirs)}</div>
           </div>
         </div>
-        <p class="kickoff">${formatKickoff(game.kickoff)}</p>
       </article>`;
   }).join("");
 }
@@ -176,21 +201,28 @@ function renderTop(games) {
     return;
   }
   root.innerHTML = games.map((g) => {
-    const awayName = g.isHome ? g.opponent : g.name;
-    const homeName = g.isHome ? g.name : g.opponent;
+    const school = teamMeta(g.schoolId || g.id, g.name);
+    const opp = teamMeta(g.opponentId, g.opponent);
+    const away = g.isHome ? opp : school;
+    const home = g.isHome ? school : opp;
     return `
-      <article class="game-row" role="listitem" data-id="${escapeHtml(g.id)}">
-        <div>
-          <div class="game-matchup">${escapeHtml(awayName)} <span>@</span> ${escapeHtml(homeName)}</div>
+      <article class="game-row stadium-row" role="listitem" data-id="${escapeHtml(g.id)}" style="--team:${escapeHtml(school.color)}; --opp:${escapeHtml(opp.color)}">
+        <div class="row-logos">
+          ${logoImg(away, "logo-row")}
+          <span class="at">@</span>
+          ${logoImg(home, "logo-row")}
+        </div>
+        <div class="row-body">
+          <div class="game-matchup">${escapeHtml(away.name)} <span>@</span> ${escapeHtml(home.name)}</div>
           <div class="game-meta">
             ${statusBadge(g.status)}
             <span>${formatKickoff(g.kickoff)}</span>
           </div>
         </div>
-        <div class="game-scores" aria-label="Score">
-          <span>${scoreText(g.awayScore)}</span>
+        <div class="game-scores neon-mini" aria-label="Score">
+          <span class="glow-score">${scoreText(g.awayScore)}</span>
           <span class="sep">–</span>
-          <span>${scoreText(g.homeScore)}</span>
+          <span class="glow-score">${scoreText(g.homeScore)}</span>
         </div>
       </article>`;
   }).join("");
@@ -224,28 +256,28 @@ function renderPickerGrid(selectedIds) {
   grid.innerHTML = (schoolsCatalog.schools || []).map((s) => {
     const on = selected.has(s.id);
     const isSuggested = suggested.has(s.id);
+    const meta = teamMeta(s.id, s.name);
     return `
       <button type="button"
-        class="school-chip${on ? " selected" : ""}${isSuggested ? " suggested" : ""}"
+        class="logo-tile${on ? " selected" : ""}${isSuggested ? " suggested" : ""}"
         role="option"
         aria-selected="${on}"
-        data-id="${escapeHtml(s.id)}">
-        <span class="chip-check" aria-hidden="true">${on ? "✓" : ""}</span>
-        <span class="chip-body">
-          <span class="chip-name">${escapeHtml(s.name)}</span>
-          <span class="chip-city">${escapeHtml(s.city || "")}</span>
-        </span>
-        ${isSuggested ? '<span class="chip-tag">Suggested</span>' : ""}
+        data-id="${escapeHtml(s.id)}"
+        style="--team:${escapeHtml(meta.color)}">
+        <span class="tile-check" aria-hidden="true">${on ? "✓" : ""}</span>
+        ${isSuggested ? '<span class="tile-tag">Suggested</span>' : ""}
+        <span class="tile-logo-wrap">${logoImg(meta, "logo-tile-img")}</span>
+        <span class="tile-name">${escapeHtml(s.name)}</span>
+        <span class="tile-city">${escapeHtml(s.city || "")}</span>
       </button>`;
   }).join("");
 
-  grid.querySelectorAll(".school-chip").forEach((btn) => {
+  grid.querySelectorAll(".logo-tile").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.id;
       const set = new Set(pendingSelection || []);
       if (set.has(id)) set.delete(id);
       else set.add(id);
-      // Preserve save order: keep existing order, append new at end
       const next = (pendingSelection || []).filter((x) => set.has(x));
       for (const x of set) {
         if (!next.includes(x)) next.push(x);
@@ -302,6 +334,7 @@ async function loadSchools() {
   const res = await fetch(`${SCHOOLS_URL}?t=${Date.now()}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`schools HTTP ${res.status}`);
   schoolsCatalog = await res.json();
+  rebuildTeamIndex();
 }
 
 async function loadScores() {

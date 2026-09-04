@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0a0e17" />
-  <meta name="description" content="Live GHSA football scoreboard — favorite Georgia high schools + top statewide games." />
+  <meta name="theme-color" content="#05070d" />
+  <meta name="description" content="Live GHSA football scoreboard — favorite Georgia high schools with logos + top statewide games." />
   <title>GHSA Scoreboard</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +18,7 @@
       <span class="brand-mark">GHSA</span>
       <div>
         <h1>Football Scoreboard</h1>
-        <p class="sub">Your favorites · Top games · Auto-refresh</p>
+        <p class="sub">Logos · Favorites · Top games · Auto-refresh</p>
       </div>
     </div>
     <div class="meta">
@@ -47,7 +47,7 @@
   </main>
 
   <footer class="foot">
-    <p>Data from <code>scores.json</code> · Refresh every 45s · Sources: MaxPreps / GHSA (see README)</p>
+    <p>Data from <code>scores.json</code> · Refresh every 45s · Mascots cached from MaxPreps where available</p>
     <p class="muted">Not affiliated with GHSA. Scores may lag live play.</p>
   </footer>
 
@@ -55,7 +55,7 @@
     <div class="picker-panel" role="dialog" aria-modal="true" aria-labelledby="picker-title">
       <div class="picker-head">
         <h2 id="picker-title">Pick your favorite teams</h2>
-        <p>Select the Georgia HS football schools you want pinned. Suggested teams are pre-checked — hit Save when ready.</p>
+        <p>Tap the logos you want pinned. Suggested teams are pre-checked — hit Save when ready.</p>
       </div>
       <div id="picker-grid" class="picker-grid" role="listbox" aria-multiselectable="true" aria-label="Schools"></div>
       <div class="picker-actions">

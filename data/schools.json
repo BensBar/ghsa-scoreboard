@@ -11,7 +11,9 @@
         "schedule": "https://www.maxpreps.com/ga/alpharetta/chattahoochee-cougars/football/schedule/"
       },
       "gpb": "https://www.gpb.org/sports/football/chattahoochee",
-      "notes": "Chattahoochee High School — often listed under Alpharetta on MaxPreps; campus in Johns Creek."
+      "notes": "Chattahoochee High School \u2014 often listed under Alpharetta on MaxPreps; campus in Johns Creek.",
+      "primaryColor": "#1e4d8c",
+      "logo": "assets/logos/chattahoochee.png"
     },
     {
       "id": "johns-creek",
@@ -23,7 +25,9 @@
         "team": "https://www.maxpreps.com/ga/johns-creek/johns-creek-gladiators/football/",
         "schedule": "https://www.maxpreps.com/ga/johns-creek/johns-creek-gladiators/football/schedule/"
       },
-      "gpb": "https://www.gpb.org/sports/football/johns-creek"
+      "gpb": "https://www.gpb.org/sports/football/johns-creek",
+      "primaryColor": "#1a2a4a",
+      "logo": "assets/logos/johns-creek.png"
     },
     {
       "id": "carrollton",
@@ -36,7 +40,9 @@
         "schedule": "https://www.maxpreps.com/ga/carrollton/carrollton-trojans/football/schedule/"
       },
       "gpb": "https://www.gpb.org/sports/football/carrollton",
-      "notes": "Carrollton High School Trojans — NOT Central High School."
+      "notes": "Carrollton High School Trojans \u2014 NOT Central High School.",
+      "primaryColor": "#8b1a2b",
+      "logo": "assets/logos/carrollton.png"
     },
     {
       "id": "central-of-carrollton",
@@ -50,87 +56,169 @@
       },
       "gpb": "https://www.gpb.org/sports/football/central-carroll",
       "ghsaLabel": "Central, Carroll",
-      "notes": "Central High School / Central-Carrollton Lions. DIFFERENT from Carrollton HS Trojans. Display label must be exactly 'Central of Carrollton'."
+      "notes": "Central High School / Central-Carrollton Lions. DIFFERENT from Carrollton HS Trojans. Display label must be exactly 'Central of Carrollton'.",
+      "primaryColor": "#003087",
+      "logo": "assets/logos/central-of-carrollton.png"
     },
     {
       "id": "buford",
       "name": "Buford",
-      "city": "Buford, GA"
+      "city": "Buford, GA",
+      "primaryColor": "#1b5e20",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/buford/buford-wolves/football/"
+      },
+      "logo": "assets/logos/buford.png"
     },
     {
       "id": "gainesville",
       "name": "Gainesville",
-      "city": "Gainesville, GA"
+      "city": "Gainesville, GA",
+      "primaryColor": "#b71c1c",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/gainesville/gainesville-red-elephants/football/"
+      },
+      "logo": "assets/logos/gainesville.png"
     },
     {
       "id": "mill-creek",
       "name": "Mill Creek",
-      "city": "Hoschton, GA"
+      "city": "Hoschton, GA",
+      "primaryColor": "#0d47a1",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/hoschton/mill-creek-hawks/football/"
+      },
+      "logo": "assets/logos/mill-creek.png"
     },
     {
       "id": "north-gwinnett",
       "name": "North Gwinnett",
-      "city": "Suwanee, GA"
+      "city": "Suwanee, GA",
+      "primaryColor": "#00205b",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/suwanee/north-gwinnett-bulldogs/football/"
+      },
+      "logo": "assets/logos/north-gwinnett.png"
     },
     {
       "id": "collins-hill",
       "name": "Collins Hill",
-      "city": "Suwanee, GA"
+      "city": "Suwanee, GA",
+      "primaryColor": "#2e7d32",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/suwanee/collins-hill-eagles/football/"
+      },
+      "logo": "assets/logos/collins-hill.png"
     },
     {
       "id": "grayson",
       "name": "Grayson",
-      "city": "Loganville, GA"
+      "city": "Loganville, GA",
+      "primaryColor": "#1a237e",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/loganville/grayson-rams/football/"
+      },
+      "logo": "assets/logos/grayson.png"
     },
     {
       "id": "colquitt-county",
       "name": "Colquitt County",
-      "city": "Moultrie, GA"
+      "city": "Moultrie, GA",
+      "primaryColor": "#212121",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/moultrie/colquitt-county-packers/football/"
+      },
+      "logo": "assets/logos/colquitt-county.png"
     },
     {
       "id": "valdosta",
       "name": "Valdosta",
-      "city": "Valdosta, GA"
+      "city": "Valdosta, GA",
+      "primaryColor": "#c62828",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/valdosta/valdosta-wildcats/football/"
+      },
+      "logo": "assets/logos/valdosta.png"
     },
     {
       "id": "lowndes",
       "name": "Lowndes",
-      "city": "Valdosta, GA"
+      "city": "Valdosta, GA",
+      "primaryColor": "#4a148c",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/valdosta/lowndes-vikings/football/"
+      },
+      "logo": "assets/logos/lowndes.png"
     },
     {
       "id": "lee-county",
       "name": "Lee County",
-      "city": "Leesburg, GA"
+      "city": "Leesburg, GA",
+      "primaryColor": "#e65100",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/leesburg/lee-county-trojans/football/"
+      },
+      "logo": "assets/logos/lee-county.png"
     },
     {
       "id": "milton",
       "name": "Milton",
-      "city": "Milton, GA"
+      "city": "Milton, GA",
+      "primaryColor": "#1b5e20",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/milton/milton-eagles/football/"
+      },
+      "logo": "assets/logos/milton.png"
     },
     {
       "id": "roswell",
       "name": "Roswell",
-      "city": "Roswell, GA"
+      "city": "Roswell, GA",
+      "primaryColor": "#1565c0",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/roswell/roswell-hornets/football/"
+      },
+      "logo": "assets/logos/roswell.png"
     },
     {
       "id": "norcross",
       "name": "Norcross",
-      "city": "Norcross, GA"
+      "city": "Norcross, GA",
+      "primaryColor": "#0d47a1",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/norcross/norcross-blue-devils/football/"
+      },
+      "logo": "assets/logos/norcross.png"
     },
     {
       "id": "peachtree-ridge",
       "name": "Peachtree Ridge",
-      "city": "Suwanee, GA"
+      "city": "Suwanee, GA",
+      "primaryColor": "#263238",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/suwanee/peachtree-ridge-lions/football/"
+      },
+      "logo": "assets/logos/peachtree-ridge.png"
     },
     {
       "id": "creekside",
       "name": "Creekside",
-      "city": "Fairburn, GA"
+      "city": "Fairburn, GA",
+      "primaryColor": "#212121",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/fairburn/creekside-seminoles/football/"
+      },
+      "logo": "assets/logos/creekside.png"
     },
     {
       "id": "jefferson",
       "name": "Jefferson",
-      "city": "Jefferson, GA"
+      "city": "Jefferson, GA",
+      "primaryColor": "#b71c1c",
+      "maxpreps": {
+        "team": "https://www.maxpreps.com/ga/jefferson/jefferson-dragons/football/"
+      },
+      "logo": "assets/logos/jefferson.png"
     }
   ],
   "suggested": [
@@ -143,5 +231,77 @@
     "maxpreps": "https://www.maxpreps.com/ga/football/",
     "ghsa": "https://www.ghsa.net/",
     "gpb": "https://www.gpb.org/sports/football"
-  }
+  },
+  "opponents": [
+    {
+      "id": "forsyth-central",
+      "name": "Forsyth Central",
+      "primaryColor": "#003366",
+      "logo": "assets/logos/forsyth-central.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "mountain-view",
+      "name": "Mountain View",
+      "primaryColor": "#1a3a6b",
+      "logo": "assets/logos/mountain-view.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "catholic-br",
+      "name": "Catholic BR",
+      "primaryColor": "#6b1f2a",
+      "logo": "assets/logos/catholic-br.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "east-paulding",
+      "name": "East Paulding",
+      "primaryColor": "#0a3d2e",
+      "logo": "assets/logos/east-paulding.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "mallard-creek",
+      "name": "Mallard Creek",
+      "primaryColor": "#003087",
+      "logo": "assets/logos/mallard-creek.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "east-st-louis",
+      "name": "East St. Louis",
+      "primaryColor": "#ff6600",
+      "logo": "assets/logos/east-st-louis.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "st-joseph-regional",
+      "name": "St. Joe's NJ",
+      "primaryColor": "#003366",
+      "logo": "assets/logos/st-joseph-regional.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "peach-county",
+      "name": "Peach County",
+      "primaryColor": "#8b0000",
+      "logo": "assets/logos/peach-county.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "northside-wr",
+      "name": "Northside WR",
+      "primaryColor": "#003399",
+      "logo": "assets/logos/northside-wr.png",
+      "source": "maxpreps"
+    },
+    {
+      "id": "warner-robins",
+      "name": "Warner Robins",
+      "primaryColor": "#c41e3a",
+      "logo": "assets/logos/warner-robins.png",
+      "source": "maxpreps"
+    }
+  ]
 }
