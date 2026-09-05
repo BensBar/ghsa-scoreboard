@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#05070d"/>
+  <path d="M96 122h320v268H96z" fill="#0e1420" stroke="#3dff9a" stroke-width="18"/>
+  <text x="256" y="236" fill="#fff" font-family="sans-serif" font-size="92" font-weight="700" text-anchor="middle">GA</text>
+  <text x="256" y="338" fill="#3dff9a" font-family="monospace" font-size="94" font-weight="700" text-anchor="middle">24·17</text>
+</svg>

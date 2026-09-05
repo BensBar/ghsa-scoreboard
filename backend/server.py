@@ -174,12 +174,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             body = self._body()
             if parsed.path == "/api/v1/admin/corrections":
+                if not str(body.get("reason", "")).strip():
+                    raise ValueError("reason is required")
                 ids = STORE.correct(
                     str(body.get("gameId", "")), body.get("updates") or {},
                     str(body.get("reason", "")).strip(), str(body.get("actor", "admin"))[:80],
                 )
-                if not body.get("reason"):
-                    raise ValueError("reason is required")
                 notify_change()
                 self._json(201, {"correctionIds": ids})
             elif parsed.path.startswith("/api/v1/admin/corrections/") and parsed.path.endswith("/rollback"):

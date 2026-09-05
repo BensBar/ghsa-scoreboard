@@ -97,6 +97,12 @@ class Store:
                 (school_id, opponent_id) if item.get("isHome") else (opponent_id, school_id)
             )
             game_id = item["id"] if item.get("schoolId") else f"{school_id}-{item['kickoff'][:10]}"
+            duplicate = self.db.execute(
+                "SELECT id FROM games WHERE kickoff=? AND home_team_id=? AND away_team_id=?",
+                (item["kickoff"], home_id, away_id),
+            ).fetchone()
+            if duplicate:
+                game_id = duplicate["id"]
             self.upsert_game({
                 "id": game_id, "kickoff": item["kickoff"], "homeTeamId": home_id,
                 "awayTeamId": away_id, "homeScore": item.get("homeScore"),
@@ -143,6 +149,8 @@ class Store:
         old = self.db.execute(
             "SELECT home_score,away_score,status,period,clock FROM games WHERE id=?", (game["id"],)
         ).fetchone()
+        if old and not self._valid_transition(old["status"], game["status"]):
+            raise ValueError(f"invalid status transition: {old['status']} to {game['status']}")
         changed = old is None or any(old[k] != game.get({
             "home_score": "homeScore", "away_score": "awayScore", "status": "status",
             "period": "period", "clock": "clock",
@@ -210,6 +218,17 @@ class Store:
         if not 0 <= confidence <= 1:
             raise ValueError("confidence must be between 0 and 1")
 
+    @staticmethod
+    def _valid_transition(previous: str, current: str) -> bool:
+        if previous == current or current in {"delayed", "postponed", "canceled"}:
+            return True
+        if previous in {"FINAL", "canceled"}:
+            return False
+        if previous in {"delayed", "postponed"}:
+            return current in VALID_STATUSES - {"scheduled"}
+        order = {"scheduled": 0, "Q1": 1, "Q2": 2, "HALF": 3, "Q3": 4, "Q4": 5, "OT": 6, "FINAL": 7}
+        return previous not in order or current not in order or order[current] >= order[previous]
+
     def scoreboard(self, filters: dict[str, str] | None = None) -> dict[str, Any]:
         filters = filters or {}
         clauses, args = [], []
@@ -263,7 +282,9 @@ class Store:
         age = None
         if success:
             age = max(0, int((now - datetime.fromisoformat(success.replace("Z", "+00:00"))).total_seconds()))
-        stale = age is None or (row["status"] in LIVE_STATUSES and age > row["stale_after_seconds"])
+        stale = row["status"] in LIVE_STATUSES and (
+            age is None or age > row["stale_after_seconds"]
+        )
         team = lambda side: {
             "id": row[f"{side}_team_id"], "name": row[f"{side}_name"],
             "record": row[f"{side}_record"], "ranking": row[f"{side}_ranking"],

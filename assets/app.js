@@ -358,9 +358,17 @@ function applyBoard() {
 function filteredTopGames(games) {
   const query = (document.getElementById("game-search")?.value || "").toLowerCase();
   const group = document.getElementById("game-group")?.value || "all";
+  const date = document.getElementById("game-date")?.value || "";
+  const classification = document.getElementById("game-classification")?.value || "";
   return games.filter((game) => {
     const text = `${game.name} ${game.opponent}`.toLowerCase();
     if (query && !text.includes(query)) return false;
+    if (date && !game.kickoff.startsWith(date)) return false;
+    if (classification) {
+      const ours = teamIndex[game.schoolId]?.ghsaClass;
+      const theirs = teamIndex[game.opponentId]?.ghsaClass;
+      if (ours !== classification && theirs !== classification) return false;
+    }
     if (group === "live") return isLiveStatus(game.status);
     if (group === "upcoming") return game.status === "scheduled";
     if (group === "final") return game.status === "FINAL";
@@ -512,6 +520,8 @@ function wirePicker() {
     function wireDiscovery() {
       document.getElementById("game-search")?.addEventListener("input", applyBoard);
       document.getElementById("game-group")?.addEventListener("change", applyBoard);
+      document.getElementById("game-date")?.addEventListener("change", applyBoard);
+      document.getElementById("game-classification")?.addEventListener("change", applyBoard);
       document.getElementById("game-dialog-close")?.addEventListener("click", () => {
         document.getElementById("game-dialog").close();
       });

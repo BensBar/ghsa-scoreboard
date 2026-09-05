@@ -1,96 +1,138 @@
-# GHSA Football Scoreboard
+# Georgia High School Scoreboard
 
-Live (auto-refreshing) scoreboard for pinned Georgia high school football teams, plus a statewide **Top games** section.
+A mobile-first, installable scoreboard for Georgia high school football. It supports a licensed
+live-data feed, normalized historical storage, server-sent updates, favorites, discovery filters,
+game details, feed-freshness warnings, and audited manual corrections.
 
-**Live site:** https://bensbar.github.io/ghsa-scoreboard/
+The hosted GitHub Pages version remains compatible with `public/scores.json`, but that file is an
+offline fallback. Production live scores require the backend.
 
-## Pinned schools
+## Run locally
 
-| ID | Display name | MaxPreps |
-| --- | --- | --- |
-| `chattahoochee` | Chattahoochee | [Cougars](https://www.maxpreps.com/ga/alpharetta/chattahoochee-cougars/football/) |
-| `johns-creek` | Johns Creek | [Gladiators](https://www.maxpreps.com/ga/johns-creek/johns-creek-gladiators/football/) |
-| `carrollton` | Carrollton | [Trojans](https://www.maxpreps.com/ga/carrollton/carrollton-trojans/football/) |
-| `central-of-carrollton` | **Central of Carrollton** | [Lions](https://www.maxpreps.com/ga/carrollton/central-lions/football/) |
+Python 3.12 is the only runtime dependency.
 
-> **Central of Carrollton** is Central High School (Central, Carroll / Central-Carrollton Lions) — **not** Carrollton High School Trojans.
+```bash
+python -m backend.server --no-ingest
+# open http://127.0.0.1:8080
+```
 
-School metadata (MaxPreps + GPB links) lives in [`data/schools.json`](data/schools.json).
+The first run creates `data/scoreboard.db` and seeds it from `data/schools.json` and
+`public/scores.json`.
 
-## This week’s seed (Fri Sep 4, 2026)
+Run tests with:
 
-Pinned kickoffs (ET):
+```bash
+python -m unittest discover -v
+```
 
-- **Chattahoochee** vs Forsyth Central — home, 7:30 PM
-- **Johns Creek** vs Mountain View — home, 7:30 PM
-- **Carrollton** at Catholic (Baton Rouge, LA) — away, ~8:00 PM ET
-- **Central of Carrollton** at East Paulding — away, 7:30 PM
+## Connect a licensed feed
 
-Top games seeded from Week 3 notables (Buford @ Mallard Creek NC, Gainesville @ East St. Louis, Creekside @ St. Joe’s NJ, Jefferson @ Peach County, Warner Robins @ Northside WR).
-
-## Data schema (`public/scores.json`)
+The generic adapter expects JSON shaped as:
 
 ```json
 {
-  "updatedAt": "2026-09-04T23:40:00Z",
-  "pinned": [
-    {
-      "id": "chattahoochee",
-      "name": "Chattahoochee",
-      "opponent": "Forsyth Central",
-      "homeScore": null,
-      "awayScore": null,
-      "status": "scheduled",
-      "kickoff": "2026-09-04T23:30:00Z",
-      "isHome": true
-    }
-  ],
-  "topGames": []
+  "teams": [{
+    "id": "stable-team-id",
+    "name": "School",
+    "aliases": ["Alternate name"],
+    "classification": "AAAAA",
+    "region": "6",
+    "record": "3-0",
+    "ranking": 4,
+    "venue": "Stadium",
+    "latitude": 34.0,
+    "longitude": -84.0,
+    "broadcastUrl": "https://example.com/broadcast"
+  }],
+  "games": [{
+    "id": "stable-game-id",
+    "sourceGameId": "provider-id",
+    "kickoff": "2026-09-05T00:00:00Z",
+    "homeTeamId": "home-id",
+    "awayTeamId": "away-id",
+    "homeScore": 14,
+    "awayScore": 7,
+    "status": "Q3",
+    "period": "Q3",
+    "clock": "04:32",
+    "possessionTeamId": "home-id",
+    "homeTimeouts": 2,
+    "awayTimeouts": 3,
+    "venue": "Stadium",
+    "confidence": 0.98,
+    "staleAfterSeconds": 120,
+    "featured": true,
+    "scoringEvents": [{
+      "sequence": 1,
+      "period": "Q1",
+      "clock": "08:14",
+      "teamId": "home-id",
+      "description": "Touchdown",
+      "homeScore": 7,
+      "awayScore": 0
+    }]
+  }]
 }
 ```
 
-- `status`: `scheduled` | `Q1` | `Q2` | `Q3` | `Q4` | `HALF` | `FINAL` | `OT`
-- `homeScore` / `awayScore`: stadium home/away (null until known)
-- `isHome`: whether the named school is the home team
-
-The UI polls `public/scores.json` every **45 seconds**.
-
-## Deploy (GitHub Pages)
-
-Static site — no build step. **Pages is enabled** from `main` / root (legacy source).
-
-**Live:** https://bensbar.github.io/ghsa-scoreboard/
-
-Optional Actions workflows (copy into `.github/workflows/` if your token has the `workflow` scope):
-
-- [`deploy/pages.yml.example`](deploy/pages.yml.example) — Actions-based Pages deploy
-- [`deploy/refresh-scores.yml.example`](deploy/refresh-scores.yml.example) — Friday-night score refresh skeleton
+Configure ordered primary and failover URLs. Tokens stay on the server.
 
 ```bash
-mkdir -p .github/workflows
-cp deploy/pages.yml.example .github/workflows/pages.yml
-cp deploy/refresh-scores.yml.example .github/workflows/refresh-scores.yml
-# then push with a token that includes the workflow scope
+export SCORE_FEED_URLS=https://primary.example/feed,https://backup.example/feed
+export SCORE_FEED_0_NAME=primary
+export SCORE_FEED_0_TOKEN=...
+export SCORE_FEED_1_NAME=backup
+export SCOREBOARD_ADMIN_TOKEN=...
+python -m backend.server
 ```
 
-## Score refresh Action
+The scheduler checks every 30 seconds while games are active and every five minutes otherwise.
+Providers are retried with backoff and then fail over in configured order. Duplicate game events
+are ignored. Invalid scores, confidence values, teams, statuses, and backward game transitions are
+rejected.
 
-The example workflow runs `scripts/refresh_scores.py` on a Friday-night cron + `workflow_dispatch`.
-
-**Reality check:** MaxPreps / ghsa.net pages are JS-heavy and scrape-fragile. The script is a best-effort skeleton: it fetches schedule URLs from `data/schools.json`, tries light parsing, and always rewrites `updatedAt`. If parsing fails, **manually edit** `public/scores.json` (or improve the scraper) and push — the site will pick it up on the next poll / Pages deploy.
+For a one-shot scheduled ingestion:
 
 ```bash
-python scripts/refresh_scores.py
+python scripts/ingest_scores.py
 ```
 
-## Local preview
+`scripts/refresh_scores.py` is a deprecated, low-confidence MaxPreps fallback. It runs only when
+`ENABLE_SCRAPE_FALLBACK=1` and never advances the displayed update time unless a score changes.
 
-```bash
-cd ghsa-scoreboard
-python -m http.server 8080
-# open http://localhost:8080
-```
+## API
 
-## License / affiliation
+- `GET /api/v1/scoreboard` — cached board; filters: `date`, `status`, `q`, `classification`, `region`
+- `GET /api/v1/games/{id}` — game, teams, and scoring timeline
+- `GET /api/v1/stream` — server-sent change events
+- `GET /api/v1/health` — provider and stale-live-game health
+- `POST /api/v1/admin/corrections` — audited field correction
+- `POST /api/v1/admin/corrections/{id}/rollback` — restore a corrected value
+- `POST /api/v1/admin/ingest` — trigger ingestion
 
-Unofficial fan project. Not affiliated with GHSA, MaxPreps, or the schools listed.
+Admin routes require `Authorization: ****** The browser console is at
+`/admin`. Run behind TLS and an authenticating reverse proxy in production.
+
+## Deployment
+
+Build `Dockerfile`, mount persistent storage at `/data`, configure the feed and admin environment
+variables, and expose port 8080 behind HTTPS. The health probe is `/api/v1/health`. A single process
+is recommended because SQLite and the in-process SSE notifier are intentionally simple; move to a
+managed SQL database and shared event bus before horizontal scaling.
+
+The PWA caches its shell and recent static fallback for offline use. Favorites stay in browser local
+storage. See [DATA_POLICY.md](DATA_POLICY.md) before choosing or enabling any provider.
+
+## Current catalog
+
+`data/schools.json` is the static starter catalog. A provider feed can continuously upsert the full
+statewide catalog, including aliases, classification, region, ranking, record, venue, coordinates,
+broadcast link, colors, and licensed logo path while retaining stable IDs.
+
+## Status values
+
+`scheduled`, `Q1`, `Q2`, `HALF`, `Q3`, `Q4`, `OT`, `FINAL`, `delayed`, `postponed`, `canceled`.
+
+## License and affiliation
+
+Unofficial fan project. Not affiliated with GHSA, GPB, MaxPreps, ScoreStream, or any school.

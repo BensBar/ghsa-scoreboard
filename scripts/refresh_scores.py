@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Best-effort score refresh for GHSA Scoreboard.
+Deprecated best-effort fallback refresh for GHSA Scoreboard.
 
 MaxPreps / GHSA HTML is JS-heavy and anti-bot fragile. This script:
   1. Loads data/schools.json + public/scores.json
   2. Tries lightweight fetches of MaxPreps schedule pages
   3. On success, merges parsed scores into scores.json
-  4. Always stamps updatedAt; exits 0 even if scrape is empty
-     (so the Action can still run / document the pipeline)
+  4. Stamps updatedAt only when score data changes
 
 Manual override: edit public/scores.json directly.
 """
@@ -15,6 +14,7 @@ Manual override: edit public/scores.json directly.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -63,6 +63,9 @@ def try_parse_maxpreps(html: str) -> dict | None:
 
 
 def main() -> int:
+    if os.getenv("ENABLE_SCRAPE_FALLBACK") != "1":
+        print("scraping disabled; set ENABLE_SCRAPE_FALLBACK=1 for emergency fallback")
+        return 0
     schools = json.loads(SCHOOLS_PATH.read_text())
     scores = json.loads(SCORES_PATH.read_text())
     by_id = {s["id"]: s for s in schools.get("schools", schools.get("pinned", []))}
@@ -82,23 +85,24 @@ def main() -> int:
         if not parsed:
             print(f"no parseable score for {game['id']}")
             continue
+        game_changed = False
         for key in ("homeScore", "awayScore"):
             if parsed.get(key) is not None and game.get(key) != parsed[key]:
                 game[key] = parsed[key]
+                game_changed = True
                 changed = True
-        # If we got numeric scores and status still scheduled, bump to FINAL as a guess
-        if (
-            game.get("homeScore") is not None
-            and game.get("awayScore") is not None
-            and game.get("status") == "scheduled"
-        ):
-            game["status"] = "FINAL"
-            changed = True
+        if game_changed:
+            game["source"] = "maxpreps-fallback"
+            game["confidence"] = 0.35
+            game["lastSuccessfulUpdate"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
         print(f"checked {game['id']}: {parsed}")
 
-    scores["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    SCORES_PATH.write_text(json.dumps(scores, indent=2) + "\n")
-    print("wrote", SCORES_PATH, "changed=" + str(changed))
+    if changed:
+        scores["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        SCORES_PATH.write_text(json.dumps(scores, indent=2) + "\n")
+        print("wrote", SCORES_PATH)
+    else:
+        print("no score changes; preserved existing updatedAt")
     return 0
 
 

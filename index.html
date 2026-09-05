@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#05070d" />
   <meta name="description" content="Live GHSA football scoreboard — favorite Georgia high schools with logos + top statewide games." />
   <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="assets/logos/ghsa-scoreboard.png" />
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
   <title>GHSA Scoreboard</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -53,6 +53,14 @@
             <option value="upcoming">Upcoming</option>
             <option value="final">Final</option>
             <option value="top25">Top 25</option>
+          </select>
+        </label>
+        <label>Date <input id="game-date" type="date"></label>
+        <label>Classification
+          <select id="game-classification">
+            <option value="">All classes</option>
+            <option>AAAAAAA</option><option>AAAAAA</option><option>AAAAA</option>
+            <option>AAAA</option><option>AAA</option><option>AA</option><option>A</option>
           </select>
         </label>
       </div>

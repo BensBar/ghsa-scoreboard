@@ -1,10 +1,13 @@
 const byId = (id) => document.getElementById(id);
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+})[character]);
 
 async function loadGames() {
   const response = await fetch("/api/v1/scoreboard");
   const data = await response.json();
   byId("game").innerHTML = data.games.map((game) =>
-    `<option value="${game.id}">${game.awayTeam.name} @ ${game.homeTeam.name} — ${game.status}</option>`
+    `<option value="${escapeHtml(game.id)}">${escapeHtml(game.awayTeam.name)} @ ${escapeHtml(game.homeTeam.name)} — ${escapeHtml(game.status)}</option>`
   ).join("");
 }
 

@@ -224,6 +224,55 @@ main { max-width: 1160px; margin: 0 auto; padding: 0.5rem 1.25rem 2rem; }
 .status-half { background: rgba(255,200,87,0.16); color: #ffd88a; border-color: rgba(255,200,87,0.35); }
 .status-final { background: rgba(122,162,255,0.14); color: var(--final); border-color: rgba(122,162,255,0.35); }
 .status-ot { background: rgba(61,255,154,0.12); color: var(--accent); border-color: rgba(61,255,154,0.35); }
+.status-stale { border-style: dashed; color: #ffd88a; }
+
+.source-meta {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-top: 0.7rem;
+}
+.game-detail-link {
+  margin-top: 0.55rem;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+.row-detail { align-self: center; margin: 0; }
+.game-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+.game-tools label, .admin-form label { color: var(--muted); font-size: 0.8rem; }
+.game-tools input, .game-tools select, .admin-form input, .admin-form select {
+  display: block;
+  margin-top: 0.25rem;
+  padding: 0.65rem;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.game-dialog {
+  width: min(92vw, 620px);
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.game-dialog::backdrop { background: rgba(0, 0, 0, 0.72); }
+.dialog-close { float: right; border: 0; background: none; color: var(--text); font-size: 1.8rem; }
+.detail-score { font: 2rem "Archivo Black", sans-serif; }
+.admin-shell { max-width: 620px; }
+.admin-form { display: grid; gap: 1rem; margin-top: 2rem; }
+.admin-form input, .admin-form select { width: 100%; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+}
 
 .neon-board {
   display: grid;
