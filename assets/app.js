@@ -322,9 +322,17 @@ function closePicker() {
   pendingSelection = null;
 }
 
+function effectiveFavorites() {
+  const saved = getFavorites();
+  if (saved && saved.length) return saved;
+  const suggested = schoolsCatalog?.suggested || [];
+  if (suggested.length) return [...suggested];
+  return [];
+}
+
 function applyBoard() {
   if (!latestScores) return;
-  const favs = getFavorites() || [];
+  const favs = effectiveFavorites();
   renderPinnedFromFavorites(latestScores, favs);
   renderTop(latestScores.topGames);
   updateLivePill(latestScores, favs);
@@ -387,6 +395,9 @@ async function boot() {
 
   const favs = getFavorites();
   if (favs === null) {
+    // Preload suggested so the board isn't blank behind the picker
+    const suggested = schoolsCatalog?.suggested || [];
+    if (suggested.length) saveFavorites(suggested);
     openPicker({ firstVisit: true });
   }
 

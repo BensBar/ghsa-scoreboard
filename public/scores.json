@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-04T23:40:00Z",
+  "updatedAt": "2026-09-05T00:19:50Z",
   "pinned": [
     {
       "id": "chattahoochee",
@@ -119,5 +119,6 @@
       "kickoff": "2026-09-04T23:30:00Z",
       "isHome": false
     }
-  ]
+  ],
+  "note": "Scores stay null until a live feed (ScoreStream) is connected. Matchups/kickoffs are seeded for Fri Sep 4 2026."
 }
