@@ -92,6 +92,13 @@ def register_reporter(
 ) -> None:
     if len(secret) < 16:
         raise ValueError("reporter secret must be at least 16 characters")
+    if not team_ids:
+        raise ValueError("reporter must be assigned at least one team")
+    known = store.db.execute(
+        f"SELECT id FROM teams WHERE id IN ({','.join('?' for _ in team_ids)})", team_ids
+    ).fetchall()
+    if len(known) != len(set(team_ids)):
+        raise ValueError("reporter assignment contains an unknown team")
     salt = secrets.token_hex(16)
     secret_hash = f"{salt}${hashlib.scrypt(secret.encode(), salt=bytes.fromhex(salt), n=16384, r=8, p=1).hex()}"
     store.db.execute("""
@@ -130,7 +137,7 @@ def parse_sms(store: Store, text: str, reporter: dict[str, Any]) -> Observation:
     away_id = _resolve_team(store, away_code)
     home_id = _resolve_team(store, home_code)
     allowed = set(reporter["teamIds"])
-    if allowed and not ({away_id, home_id} & allowed):
+    if not ({away_id, home_id} & allowed):
         raise PermissionError("reporter is not assigned to either team")
     game = store.db.execute("""
       SELECT id FROM games WHERE away_team_id=? AND home_team_id=?

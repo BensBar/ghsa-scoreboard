@@ -81,19 +81,20 @@ byId("source-form").addEventListener("submit", async (event) => {
     attribution: byId("source-name").value,
   });
 
-  byId("radio-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const [response, data] = await adminPost("/api/v1/admin/radio-observations", {
-      sourceId: byId("radio-source-id").value,
-      gameId: byId("radio-game").value,
-      transcript: byId("radio-transcript").value,
-    });
-    byId("radio-result").textContent = response.ok
-      ? `Extracted ${data.extracted} observation(s); ${data.results.filter((item) => item.published).length} published.`
-      : `Extraction failed: ${data.error}`;
-    byId("radio-transcript").value = "";
-  });
   byId("source-result").textContent = response.ok
     ? `Source ${data.sourceId} approved.`
     : `Source failed: ${data.error}`;
+});
+
+byId("radio-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const [response, data] = await adminPost("/api/v1/admin/radio-observations", {
+    sourceId: byId("radio-source-id").value,
+    gameId: byId("radio-game").value,
+    transcript: byId("radio-transcript").value,
+  });
+  byId("radio-result").textContent = response.ok
+    ? `Extracted ${data.extracted} observation(s); ${data.results.filter((item) => item.published).length} published.`
+    : `Extraction failed: ${data.error}`;
+  byId("radio-transcript").value = "";
 });

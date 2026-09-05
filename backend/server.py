@@ -21,7 +21,10 @@ from .score_desk import (
 from .store import LIVE_STATUSES, Store
 
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = Path(os.getenv("SCOREBOARD_DB", ROOT / "data" / "scoreboard.db"))
+DB_PATH = Path(os.getenv(
+    "SCOREBOARD_DB", Path.home() / ".local" / "share" / "ghsa-scoreboard" / "scoreboard.db"
+))
+DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 STATIC_ROOT = ROOT
 STORE = Store(DB_PATH)
 STORE.seed(ROOT / "data" / "schools.json", ROOT / "public" / "scores.json")
@@ -32,8 +35,14 @@ for configured_source in json.loads((ROOT / "data" / "sources.json").read_text()
     ).fetchone():
         register_source(STORE, configured_source)
 VERSION = threading.Condition()
+DB_LOCK = threading.RLock()
 CHANGE_VERSION = 0
 CACHE: dict[str, tuple[float, bytes, str]] = {}
+STATIC_FILES = {
+    "index.html", "manifest.webmanifest", "service-worker.js", "DATA_POLICY.md",
+    "data/schools.json", "public/scores.json", "admin/index.html", "admin/admin.js",
+    "report/index.html", "report/report.js",
+}
 
 
 def notify_change() -> None:
@@ -46,13 +55,15 @@ def notify_change() -> None:
 
 def run_ingestion_loop() -> None:
     while True:
-        result = ingest(STORE, configured_feeds())
+        with DB_LOCK:
+            result = ingest(STORE, configured_feeds())
         if result.get("changed"):
             notify_change()
-        active = STORE.db.execute(
-            f"SELECT 1 FROM games WHERE status IN ({','.join('?' for _ in LIVE_STATUSES)}) LIMIT 1",
-            tuple(LIVE_STATUSES),
-        ).fetchone()
+        with DB_LOCK:
+            active = STORE.db.execute(
+                f"SELECT 1 FROM games WHERE status IN ({','.join('?' for _ in LIVE_STATUSES)}) LIMIT 1",
+                tuple(LIVE_STATUSES),
+            ).fetchone()
         time.sleep(30 if active else 300)
 
 
@@ -94,31 +105,42 @@ class Handler(BaseHTTPRequestHandler):
             self._scoreboard(parse_qs(parsed.query))
         elif parsed.path.startswith("/api/v1/games/"):
             game_id = unquote(parsed.path.removeprefix("/api/v1/games/"))
-            game = STORE.game(game_id)
+            with DB_LOCK:
+                game = STORE.game(game_id)
             self._json(200, game) if game else self._json(404, {"error": "game not found"})
         elif parsed.path == "/api/v1/stream":
             self._stream()
         elif parsed.path == "/api/v1/health":
-            board = STORE.scoreboard()
+            with DB_LOCK:
+                board = STORE.scoreboard()
             stale_live = sum(g["stale"] and g["status"] in LIVE_STATUSES for g in board["games"])
             self._json(200 if not stale_live else 503, {
                 "ok": not stale_live, "staleLiveGames": stale_live,
                 "providers": board["providerHealth"],
             })
-        elif parsed.path == "/admin":
+        elif parsed.path in {"/admin", "/admin/"}:
             self._file(ROOT / "admin" / "index.html", no_store=True)
-        elif parsed.path == "/report":
+        elif parsed.path in {"/report", "/report/"}:
             self._file(ROOT / "report" / "index.html", no_store=True)
         elif parsed.path == "/api/v1/sources":
-            sources = [dict(row) for row in STORE.db.execute(
-                "SELECT id,name,kind,homepage_url,permission_status,attribution "
-                "FROM sources WHERE enabled=1 ORDER BY name"
-            )]
+            with DB_LOCK:
+                sources = [dict(row) for row in STORE.db.execute(
+                    "SELECT id,name,kind,homepage_url,permission_status,attribution "
+                    "FROM sources WHERE enabled=1 ORDER BY name"
+                )]
             self._json(200, {"sources": sources})
         else:
             relative = unquote(parsed.path).lstrip("/") or "index.html"
             candidate = (STATIC_ROOT / relative).resolve()
-            if STATIC_ROOT not in candidate.parents and candidate != STATIC_ROOT:
+            parts = Path(relative).parts
+            allowed = (
+                ".." not in parts and
+                (relative in STATIC_FILES or (parts and parts[0] == "assets"))
+            )
+            if (
+                not allowed or
+                (STATIC_ROOT not in candidate.parents and candidate != STATIC_ROOT)
+            ):
                 self.send_error(HTTPStatus.NOT_FOUND)
             else:
                 self._file(candidate)
@@ -130,7 +152,9 @@ class Handler(BaseHTTPRequestHandler):
         if cached and time.monotonic() - cached[0] < 10:
             body, etag = cached[1], cached[2]
         else:
-            body = json.dumps(STORE.scoreboard(filters), separators=(",", ":")).encode()
+            with DB_LOCK:
+                board = STORE.scoreboard(filters)
+            body = json.dumps(board, separators=(",", ":")).encode()
             etag = f'"{hashlib.sha256(body).hexdigest()[:24]}"'
             CACHE[cache_key] = (time.monotonic(), body, etag)
         if self.headers.get("If-None-Match") == etag:
@@ -193,6 +217,10 @@ class Handler(BaseHTTPRequestHandler):
         if not reporter_route and not self._authorized():
             self._json(401, {"error": "valid admin bearer token required"})
             return
+        with DB_LOCK:
+            self._do_post(parsed, reporter_route)
+
+    def _do_post(self, parsed, reporter_route: bool) -> None:
         try:
             body = self._body()
             if reporter_route:

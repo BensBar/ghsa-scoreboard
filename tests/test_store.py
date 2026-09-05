@@ -57,6 +57,14 @@ class StoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "non-negative"):
             self.store.upsert_game({**self.game, "homeScore": -1})
 
+    def test_invalid_correction_is_atomic(self) -> None:
+        with self.assertRaisesRegex(ValueError, "cannot be corrected"):
+            self.store.correct(
+                "game-1", {"homeScore": 35, "unsupported": "value"}, "test", "tester"
+            )
+        self.store.health("test", True, None, 1)
+        self.assertEqual(7, self.store.game("game-1")["homeScore"])
+
 
 if __name__ == "__main__":
     unittest.main()

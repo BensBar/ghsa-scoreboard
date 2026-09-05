@@ -516,19 +516,19 @@ function wirePicker() {
     if (e.target === e.currentTarget && getFavorites()) {
       closePicker();
     }
-
-    function wireDiscovery() {
-      document.getElementById("game-search")?.addEventListener("input", applyBoard);
-      document.getElementById("game-group")?.addEventListener("change", applyBoard);
-      document.getElementById("game-date")?.addEventListener("change", applyBoard);
-      document.getElementById("game-classification")?.addEventListener("change", applyBoard);
-      document.getElementById("game-dialog-close")?.addEventListener("click", () => {
-        document.getElementById("game-dialog").close();
-      });
-    }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && getFavorites()) closePicker();
+  });
+}
+
+function wireDiscovery() {
+  document.getElementById("game-search")?.addEventListener("input", applyBoard);
+  document.getElementById("game-group")?.addEventListener("change", applyBoard);
+  document.getElementById("game-date")?.addEventListener("change", applyBoard);
+  document.getElementById("game-classification")?.addEventListener("change", applyBoard);
+  document.getElementById("game-dialog-close")?.addEventListener("click", () => {
+    document.getElementById("game-dialog").close();
   });
 }
 

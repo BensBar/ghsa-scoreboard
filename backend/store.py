@@ -313,6 +313,9 @@ class Store:
         row = self.db.execute("SELECT * FROM games WHERE id=?", (game_id,)).fetchone()
         if not row:
             raise KeyError(game_id)
+        invalid_fields = set(updates) - set(allowed)
+        if invalid_fields:
+            raise ValueError(f"field cannot be corrected: {sorted(invalid_fields)[0]}")
         candidate = {
             "id": game_id, "kickoff": row["kickoff"], "homeTeamId": row["home_team_id"],
             "awayTeamId": row["away_team_id"], "status": updates.get("status", row["status"]),
@@ -324,21 +327,26 @@ class Store:
         }
         self._validate_game(candidate)
         ids, now = [], utcnow()
-        for public, value in updates.items():
-            column = allowed.get(public)
-            if not column:
-                raise ValueError(f"field cannot be corrected: {public}")
-            old = row[column]
-            if old == value:
-                continue
-            cur = self.db.execute("""
-            INSERT INTO corrections (game_id,field,old_value,new_value,reason,corrected_by,corrected_at)
-            VALUES (?,?,?,?,?,?,?)
-            """, (game_id, column, json.dumps(old), json.dumps(value), reason, actor, now))
-            self.db.execute(f"UPDATE games SET {column}=?, source='manual', confidence=1, "
-                            "last_successful_update=? WHERE id=?", (value, now, game_id))
-            ids.append(cur.lastrowid)
-        self.db.commit()
+        self.db.execute("SAVEPOINT apply_correction")
+        try:
+            for public, value in updates.items():
+                column = allowed[public]
+                old = row[column]
+                if old == value:
+                    continue
+                cur = self.db.execute("""
+                INSERT INTO corrections (game_id,field,old_value,new_value,reason,corrected_by,corrected_at)
+                VALUES (?,?,?,?,?,?,?)
+                """, (game_id, column, json.dumps(old), json.dumps(value), reason, actor, now))
+                self.db.execute(f"UPDATE games SET {column}=?, source='manual', confidence=1, "
+                                "last_successful_update=? WHERE id=?", (value, now, game_id))
+                ids.append(cur.lastrowid)
+            self.db.execute("RELEASE apply_correction")
+            self.db.commit()
+        except Exception:
+            self.db.execute("ROLLBACK TO apply_correction")
+            self.db.execute("RELEASE apply_correction")
+            raise
         return ids
 
     def rollback(self, correction_id: int, actor: str) -> None:

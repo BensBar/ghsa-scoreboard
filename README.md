@@ -17,8 +17,8 @@ python -m backend.server --no-ingest
 # open http://127.0.0.1:8080
 ```
 
-The first run creates `data/scoreboard.db` and seeds it from `data/schools.json` and
-`public/scores.json`.
+The first run creates `~/.local/share/ghsa-scoreboard/scoreboard.db` and seeds it from
+`data/schools.json` and `public/scores.json`. Override this with `SCOREBOARD_DB`.
 
 Run tests with:
 

@@ -81,6 +81,10 @@ class ScoreDeskTests(unittest.TestCase):
         self.assertFalse(duplicate["accepted"])
         self.assertEqual(14, self.store.game("game")["awayScore"])
 
+    def test_reporter_requires_team_assignment(self) -> None:
+        with self.assertRaisesRegex(ValueError, "at least one team"):
+            register_reporter(self.store, "r1", "Reporter", [], "long-random-secret")
+
 
 if __name__ == "__main__":
     unittest.main()
