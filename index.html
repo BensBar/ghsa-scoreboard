@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#05070d" />
   <meta name="description" content="Live GHSA football scoreboard — favorite Georgia high schools with logos + top statewide games." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/logos/ghsa-scoreboard.png" />
   <title>GHSA Scoreboard</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -42,13 +44,25 @@
         <h2 id="top-heading">Top games</h2>
         <p>Statewide notables &amp; ranked matchups</p>
       </div>
+      <div class="game-tools" aria-label="Find games">
+        <label>Search <input id="game-search" type="search" placeholder="Team name"></label>
+        <label>View
+          <select id="game-group">
+            <option value="all">All games</option>
+            <option value="live">Live</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="final">Final</option>
+            <option value="top25">Top 25</option>
+          </select>
+        </label>
+      </div>
       <div id="top-games" class="games-list" role="list"></div>
     </section>
   </main>
 
   <footer class="foot">
-    <p>Data from <code>scores.json</code> · Refresh every 45s · Mascots cached from MaxPreps where available</p>
-    <p class="muted">Not affiliated with GHSA. Scores may lag live play.</p>
+    <p>Provider data updates in real time when available, with a 45-second polling fallback.</p>
+    <p class="muted">Unofficial and not affiliated with GHSA. Verify important results with the listed source. <a href="DATA_POLICY.md">Data policy</a></p>
   </footer>
 
   <div id="favorites-picker" class="picker-overlay" hidden aria-hidden="true">
@@ -64,6 +78,11 @@
       </div>
     </div>
   </div>
+
+  <dialog id="game-dialog" class="game-dialog">
+    <button type="button" id="game-dialog-close" class="dialog-close" aria-label="Close game details">×</button>
+    <div id="game-dialog-body"></div>
+  </dialog>
 
   <script src="assets/app.js"></script>
 </body>

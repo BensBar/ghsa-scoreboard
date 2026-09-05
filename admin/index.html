@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Score correction console</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <h1>Score correction console</h1>
+    <p class="muted">Corrections are audited and override provider data until the next verified update.</p>
+    <form id="correction-form" class="admin-form">
+      <label>Admin token <input id="token" type="password" autocomplete="current-password" required></label>
+      <label>Game <select id="game" required></select></label>
+      <label>Home score <input id="home-score" type="number" min="0"></label>
+      <label>Away score <input id="away-score" type="number" min="0"></label>
+      <label>Status
+        <select id="status">
+          <option value="">No change</option><option>scheduled</option><option>Q1</option>
+          <option>Q2</option><option>HALF</option><option>Q3</option><option>Q4</option>
+          <option>OT</option><option>FINAL</option><option>delayed</option>
+          <option>postponed</option><option>canceled</option>
+        </select>
+      </label>
+      <label>Reason <input id="reason" required maxlength="240"></label>
+      <label>Your name <input id="actor" required maxlength="80"></label>
+      <button class="btn-save" type="submit">Apply correction</button>
+    </form>
+    <p id="result" role="status" aria-live="polite"></p>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>

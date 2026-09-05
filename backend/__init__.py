@@ -1,0 +1,1 @@
+"""GHSA Scoreboard backend."""

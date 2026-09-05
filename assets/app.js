@@ -1,4 +1,6 @@
 const REFRESH_MS = 45000;
+const API_URL = "api/v1/scoreboard";
+const STREAM_URL = "api/v1/stream";
 const SCORES_URL = "public/scores.json";
 const SCHOOLS_URL = "data/schools.json";
 const FAVORITES_KEY = "ghsa-favorites";
@@ -12,6 +14,9 @@ const STATUS_CLASS = {
   HALF: "status-half",
   FINAL: "status-final",
   OT: "status-ot",
+  delayed: "status-half",
+  postponed: "status-scheduled",
+  canceled: "status-final",
 };
 
 let schoolsCatalog = { schools: [], opponents: [], suggested: [] };
@@ -22,7 +27,7 @@ let latestScores = null;
 let pendingSelection = null;
 
 function isLiveStatus(status) {
-  return ["Q1", "Q2", "Q3", "Q4", "HALF", "OT"].includes(status);
+  return ["Q1", "Q2", "Q3", "Q4", "HALF", "OT", "delayed"].includes(status);
 }
 
 function formatKickoff(iso) {
@@ -69,9 +74,17 @@ function scoreText(n) {
   return n === null || n === undefined ? "—" : String(n);
 }
 
-function statusBadge(status) {
+function statusBadge(status, stale = false) {
   const cls = STATUS_CLASS[status] || "status-scheduled";
-  return `<span class="status-badge ${cls}">${status || "scheduled"}</span>`;
+  const label = stale ? `${status || "scheduled"} · delayed feed` : status || "scheduled";
+  return `<span class="status-badge ${cls}${stale ? " status-stale" : ""}">${escapeHtml(label)}</span>`;
+}
+
+function sourceMeta(game) {
+  const confidence = Math.round((game.confidence ?? 0) * 100);
+  const checked = game.lastFeedCheck ? `Checked ${formatUpdated(game.lastFeedCheck).replace("Updated ", "")}` : "Feed not checked";
+  const changed = game.lastScoreChange ? `Score changed ${formatUpdated(game.lastScoreChange).replace("Updated ", "")}` : "No score change reported";
+  return `<div class="source-meta">${escapeHtml(game.source || "unknown source")} · ${confidence}% confidence<br>${escapeHtml(checked)} · ${escapeHtml(changed)}</div>`;
 }
 
 function escapeHtml(s) {
@@ -172,7 +185,7 @@ function renderPinnedFromFavorites(data, favoriteIds) {
               <span class="ha-tag">${ha}</span>
             </p>
           </div>
-          ${statusBadge(game.status)}
+          ${statusBadge(game.status, game.stale)}
         </div>
         <div class="scoreboard neon-board">
           <div class="team-col">
@@ -190,6 +203,8 @@ function renderPinnedFromFavorites(data, favoriteIds) {
             <div class="score theirs glow-score">${scoreText(theirs)}</div>
           </div>
         </div>
+        ${sourceMeta(game)}
+        <button class="game-detail-link" type="button" data-game-id="${escapeHtml(game.gameId || game.id)}">Game details</button>
       </article>`;
   }).join("");
 }
@@ -215,7 +230,7 @@ function renderTop(games) {
         <div class="row-body">
           <div class="game-matchup">${escapeHtml(away.name)} <span>@</span> ${escapeHtml(home.name)}</div>
           <div class="game-meta">
-            ${statusBadge(g.status)}
+            ${statusBadge(g.status, g.stale)}
             <span>${formatKickoff(g.kickoff)}</span>
           </div>
         </div>
@@ -224,6 +239,7 @@ function renderTop(games) {
           <span class="sep">–</span>
           <span class="glow-score">${scoreText(g.homeScore)}</span>
         </div>
+        <button class="game-detail-link row-detail" type="button" data-game-id="${escapeHtml(g.gameId || g.id)}">Details</button>
       </article>`;
   }).join("");
 }
@@ -334,8 +350,69 @@ function applyBoard() {
   if (!latestScores) return;
   const favs = effectiveFavorites();
   renderPinnedFromFavorites(latestScores, favs);
-  renderTop(latestScores.topGames);
+  renderTop(filteredTopGames(latestScores.topGames || []));
   updateLivePill(latestScores, favs);
+  wireGameDetails();
+}
+
+function filteredTopGames(games) {
+  const query = (document.getElementById("game-search")?.value || "").toLowerCase();
+  const group = document.getElementById("game-group")?.value || "all";
+  return games.filter((game) => {
+    const text = `${game.name} ${game.opponent}`.toLowerCase();
+    if (query && !text.includes(query)) return false;
+    if (group === "live") return isLiveStatus(game.status);
+    if (group === "upcoming") return game.status === "scheduled";
+    if (group === "final") return game.status === "FINAL";
+    if (group === "top25") {
+      return Boolean(teamIndex[game.schoolId]?.ranking || teamIndex[game.opponentId]?.ranking);
+    }
+    return true;
+  });
+}
+
+function normalizeApi(data) {
+  const games = (data.games || []).map((game) => ({
+    id: game.homeTeam.id,
+    gameId: game.id,
+    schoolId: game.homeTeam.id,
+    name: game.homeTeam.name,
+    opponentId: game.awayTeam.id,
+    opponent: game.awayTeam.name,
+    homeScore: game.homeScore,
+    awayScore: game.awayScore,
+    status: game.status,
+    kickoff: game.kickoff,
+    isHome: true,
+    period: game.period,
+    clock: game.clock,
+    stale: game.stale,
+    source: game.source,
+    confidence: game.confidence,
+    lastFeedCheck: game.lastFeedCheck,
+    lastSuccessfulUpdate: game.lastSuccessfulUpdate,
+    lastScoreChange: game.lastScoreChange,
+  }));
+  const pinned = [];
+  for (const game of games) {
+    pinned.push(game);
+    pinned.push({
+      ...game,
+      id: game.opponentId,
+      schoolId: game.opponentId,
+      name: game.opponent,
+      opponentId: game.schoolId,
+      opponent: game.name,
+      isHome: false,
+    });
+  }
+  return {
+    updatedAt: data.lastSuccessfulUpdate,
+    generatedAt: data.generatedAt,
+    pinned,
+    topGames: games,
+    providerHealth: data.providerHealth || [],
+  };
 }
 
 async function loadSchools() {
@@ -346,13 +423,65 @@ async function loadSchools() {
 }
 
 async function loadScores() {
-  const res = await fetch(`${SCORES_URL}?t=${Date.now()}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
+  let res = await fetch(`${API_URL}?t=${Date.now()}`, { cache: "no-store" });
+  let data;
+  if (res.ok) {
+    data = normalizeApi(await res.json());
+  } else {
+    res = await fetch(`${SCORES_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    data = await res.json();
+  }
   latestScores = data;
   document.getElementById("updated").textContent = formatUpdated(data.updatedAt);
   document.getElementById("updated").dateTime = data.updatedAt || "";
   applyBoard();
+}
+
+async function openGameDetails(gameId) {
+  const dialog = document.getElementById("game-dialog");
+  const body = document.getElementById("game-dialog-body");
+  try {
+    const response = await fetch(`api/v1/games/${encodeURIComponent(gameId)}`);
+    if (!response.ok) throw new Error("details unavailable");
+    const game = await response.json();
+    const events = (game.scoringEvents || []).map((event) =>
+      `<li><strong>${escapeHtml(event.period || "")} ${escapeHtml(event.clock || "")}</strong> ${escapeHtml(event.description)}</li>`
+    ).join("");
+    body.innerHTML = `
+      <h2>${escapeHtml(game.awayTeam.name)} @ ${escapeHtml(game.homeTeam.name)}</h2>
+      <p class="detail-score">${scoreText(game.awayScore)} – ${scoreText(game.homeScore)}</p>
+      <p>${statusBadge(game.status, game.stale)} ${escapeHtml(game.clock || "")}</p>
+      <p>${escapeHtml(game.venue || "Venue not reported")}</p>
+      ${sourceMeta(game)}
+      <h3>Scoring timeline</h3><ol>${events || "<li>No scoring events reported.</li>"}</ol>
+      <button type="button" id="share-game" class="btn-edit">Share game</button>`;
+    dialog.showModal();
+    document.getElementById("share-game")?.addEventListener("click", async () => {
+      const url = `${location.origin}${location.pathname}#game=${encodeURIComponent(game.id)}`;
+      if (navigator.share) await navigator.share({ title: `${game.awayTeam.name} at ${game.homeTeam.name}`, url });
+      else await navigator.clipboard.writeText(url);
+    });
+  } catch {
+    body.textContent = "Game details are unavailable while using the static fallback.";
+    dialog.showModal();
+  }
+}
+
+function wireGameDetails() {
+  document.querySelectorAll(".game-detail-link").forEach((button) => {
+    button.addEventListener("click", () => openGameDetails(button.dataset.gameId));
+  });
+}
+
+function connectLiveUpdates() {
+  if (!window.EventSource) return;
+  const stream = new EventSource(STREAM_URL);
+  stream.addEventListener("scoreboard", tick);
+  stream.onerror = () => {
+    stream.close();
+    setTimeout(connectLiveUpdates, REFRESH_MS);
+  };
 }
 
 async function tick() {
@@ -379,6 +508,14 @@ function wirePicker() {
     if (e.target === e.currentTarget && getFavorites()) {
       closePicker();
     }
+
+    function wireDiscovery() {
+      document.getElementById("game-search")?.addEventListener("input", applyBoard);
+      document.getElementById("game-group")?.addEventListener("change", applyBoard);
+      document.getElementById("game-dialog-close")?.addEventListener("click", () => {
+        document.getElementById("game-dialog").close();
+      });
+    }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && getFavorites()) closePicker();
@@ -387,6 +524,7 @@ function wirePicker() {
 
 async function boot() {
   wirePicker();
+  wireDiscovery();
   try {
     await loadSchools();
   } catch (err) {
@@ -402,7 +540,9 @@ async function boot() {
   }
 
   await tick();
+  connectLiveUpdates();
   setInterval(tick, REFRESH_MS);
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
 }
 
 boot();
