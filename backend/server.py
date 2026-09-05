@@ -18,12 +18,10 @@ from .score_desk import (
     Observation, authenticate_reporter, extract_radio_observations, migrate,
     parse_sms, register_reporter, register_source, submit_observation,
 )
-from .store import LIVE_STATUSES, Store
+from .store import LIVE_STATUSES, Store, default_db_path
 
 ROOT = Path(__file__).resolve().parents[1]
-DB_PATH = Path(os.getenv(
-    "SCOREBOARD_DB", Path.home() / ".local" / "share" / "ghsa-scoreboard" / "scoreboard.db"
-))
+DB_PATH = Path(os.getenv("SCOREBOARD_DB", default_db_path()))
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 STATIC_ROOT = ROOT
 STORE = Store(DB_PATH)
@@ -70,6 +68,10 @@ def run_ingestion_loop() -> None:
 class Handler(BaseHTTPRequestHandler):
     server_version = "GHSA-Scoreboard/2.0"
 
+    def setup(self) -> None:
+        super().setup()
+        self.connection.settimeout(10)
+
     def log_message(self, fmt: str, *args: object) -> None:
         print(f"{self.address_string()} - {fmt % args}")
 
@@ -90,8 +92,11 @@ class Handler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > 64_000:
                 raise ValueError("invalid request size")
-            return json.loads(self.rfile.read(length))
-        except (ValueError, json.JSONDecodeError) as exc:
+            body = json.loads(self.rfile.read(length))
+            if not isinstance(body, dict):
+                raise ValueError("JSON body must be an object")
+            return body
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
             raise ValueError("invalid JSON body") from exc
 
     def _authorized(self) -> bool:
@@ -217,12 +222,16 @@ class Handler(BaseHTTPRequestHandler):
         if not reporter_route and not self._authorized():
             self._json(401, {"error": "valid admin bearer token required"})
             return
-        with DB_LOCK:
-            self._do_post(parsed, reporter_route)
-
-    def _do_post(self, parsed, reporter_route: bool) -> None:
         try:
             body = self._body()
+        except ValueError as exc:
+            self._json(400, {"error": str(exc)})
+            return
+        with DB_LOCK:
+            self._do_post(parsed, reporter_route, body)
+
+    def _do_post(self, parsed, reporter_route: bool, body: dict) -> None:
+        try:
             if reporter_route:
                 reporter = authenticate_reporter(
                     STORE, str(body.get("reporterId", "")), str(body.get("secret", ""))

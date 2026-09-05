@@ -10,11 +10,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from backend.ingest import configured_feeds, ingest
-from backend.store import Store
+from backend.store import Store, default_db_path
 
 
 def main() -> int:
-    store = Store(os.getenv("SCOREBOARD_DB", ROOT / "data" / "scoreboard.db"))
+    store = Store(os.getenv("SCOREBOARD_DB", default_db_path()))
     store.seed(ROOT / "data" / "schools.json", ROOT / "public" / "scores.json")
     result = ingest(store, configured_feeds())
     print(json.dumps(result))

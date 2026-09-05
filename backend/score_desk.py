@@ -129,7 +129,9 @@ def authenticate_reporter(store: Store, reporter_id: str, secret: str) -> dict[s
     return {"id": row["id"], "name": row["name"], "teamIds": json.loads(row["team_ids"])}
 
 
-def parse_sms(store: Store, text: str, reporter: dict[str, Any]) -> Observation:
+def parse_sms(
+    store: Store, text: str, reporter: dict[str, Any], now: datetime | None = None
+) -> Observation:
     match = SMS_PATTERN.match(text)
     if not match:
         raise ValueError("use: AWAY 14 HOME 21 Q3 4:32")
@@ -139,12 +141,23 @@ def parse_sms(store: Store, text: str, reporter: dict[str, Any]) -> Observation:
     allowed = set(reporter["teamIds"])
     if not ({away_id, home_id} & allowed):
         raise PermissionError("reporter is not assigned to either team")
-    game = store.db.execute("""
-      SELECT id FROM games WHERE away_team_id=? AND home_team_id=?
-      ORDER BY kickoff DESC LIMIT 1
-    """, (away_id, home_id)).fetchone()
-    if not game:
-        raise ValueError("no matching game")
+    candidates = store.db.execute("""
+      SELECT id,kickoff,status FROM games WHERE away_team_id=? AND home_team_id=?
+        AND status NOT IN ('FINAL','canceled','postponed')
+    """, (away_id, home_id)).fetchall()
+    now = now or datetime.now(timezone.utc)
+    nearby = []
+    for candidate in candidates:
+        kickoff = datetime.fromisoformat(candidate["kickoff"].replace("Z", "+00:00"))
+        distance = abs((now - kickoff).total_seconds())
+        if distance <= 18 * 60 * 60:
+            nearby.append((distance, candidate))
+    nearby.sort(key=lambda item: item[0])
+    if not nearby:
+        raise ValueError("no current matching game")
+    if len(nearby) > 1 and nearby[0][0] == nearby[1][0]:
+        raise ValueError("matching game is ambiguous")
+    game = nearby[0][1]
     normalized_status = status.upper() if status else None
     if normalized_status == "DELAYED":
         normalized_status = "delayed"

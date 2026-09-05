@@ -14,6 +14,10 @@ VALID_STATUSES = {
 LIVE_STATUSES = {"Q1", "Q2", "HALF", "Q3", "Q4", "OT", "delayed"}
 
 
+def default_db_path() -> Path:
+    return Path.home() / ".local" / "share" / "ghsa-scoreboard" / "scoreboard.db"
+
+
 def utcnow() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 

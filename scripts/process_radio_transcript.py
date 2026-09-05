@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from backend.score_desk import extract_radio_observations, migrate, submit_observation
-from backend.store import Store
+from backend.store import Store, default_db_path
 
 
 def main() -> int:
@@ -24,7 +24,7 @@ def main() -> int:
     parser.add_argument("--game", required=True)
     args = parser.parse_args()
     transcript = sys.stdin.read()
-    store = Store(os.getenv("SCOREBOARD_DB", ROOT / "data" / "scoreboard.db"))
+    store = Store(os.getenv("SCOREBOARD_DB", default_db_path()))
     migrate(store)
     observations = extract_radio_observations(store, args.source, transcript, args.game)
     results = [submit_observation(store, observation) for observation in observations]

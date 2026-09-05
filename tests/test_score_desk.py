@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 from backend.score_desk import (
@@ -34,7 +35,10 @@ class ScoreDeskTests(unittest.TestCase):
     def test_trusted_reporter_sms_publishes_immediately(self) -> None:
         register_reporter(self.store, "r1", "Reporter", ["car"], "long-random-secret")
         reporter = authenticate_reporter(self.store, "r1", "long-random-secret")
-        observation = parse_sms(self.store, "CAR 21 CAT 7 Q3 4:32", reporter)
+        observation = parse_sms(
+            self.store, "CAR 21 CAT 7 Q3 4:32", reporter,
+            datetime(2026, 9, 5, 1, tzinfo=timezone.utc),
+        )
         result = submit_observation(self.store, observation)
         game = self.store.game("game")
         self.assertTrue(result["published"])
@@ -84,6 +88,20 @@ class ScoreDeskTests(unittest.TestCase):
     def test_reporter_requires_team_assignment(self) -> None:
         with self.assertRaisesRegex(ValueError, "at least one team"):
             register_reporter(self.store, "r1", "Reporter", [], "long-random-secret")
+
+    def test_sms_ignores_future_rematch(self) -> None:
+        self.store.upsert_game({
+            "id": "future", "kickoff": "2026-09-12T00:00:00Z",
+            "homeTeamId": "cat", "awayTeamId": "car", "status": "scheduled",
+            "source": "seed",
+        })
+        register_reporter(self.store, "r1", "Reporter", ["car"], "long-random-secret")
+        reporter = authenticate_reporter(self.store, "r1", "long-random-secret")
+        observation = parse_sms(
+            self.store, "CAR 21 CAT 7 Q3 4:32", reporter,
+            datetime(2026, 9, 5, 1, tzinfo=timezone.utc),
+        )
+        self.assertEqual("game", observation.game_id)
 
 
 if __name__ == "__main__":
