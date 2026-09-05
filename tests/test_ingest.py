@@ -42,6 +42,29 @@ class IngestTests(unittest.TestCase):
         self.assertEqual("licensed", result["provider"])
         self.assertEqual("licensed", self.store.game("g")["source"])
 
+    def test_rejected_game_does_not_drop_later_games(self) -> None:
+        teams = [{"id": value, "name": value.upper()} for value in ("a", "h", "x", "y")]
+        self.store.upsert_team(teams[0])
+        self.store.upsert_team(teams[1])
+        self.store.upsert_game({
+            "id": "finished", "kickoff": "2026-09-05T00:00:00Z",
+            "homeTeamId": "h", "awayTeamId": "a", "status": "FINAL", "source": "test",
+        })
+        self.store.db.commit()
+        payload = {"teams": teams, "games": [
+            {
+                "id": "finished", "kickoff": "2026-09-05T00:00:00Z",
+                "homeTeamId": "h", "awayTeamId": "a", "status": "Q4",
+            },
+            {
+                "id": "next", "kickoff": "2026-09-05T01:00:00Z",
+                "homeTeamId": "y", "awayTeamId": "x", "status": "scheduled",
+            },
+        ]}
+        result = ingest(self.store, [FakeFeed("licensed", payload=payload)], retries=0)
+        self.assertEqual(1, len(result["rejected"]))
+        self.assertIsNotNone(self.store.game("next"))
+
 
 if __name__ == "__main__":
     unittest.main()

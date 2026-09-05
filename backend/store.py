@@ -318,6 +318,8 @@ class Store:
             "awayTeamId": row["away_team_id"], "status": updates.get("status", row["status"]),
             "homeScore": updates.get("homeScore", row["home_score"]),
             "awayScore": updates.get("awayScore", row["away_score"]),
+            "homeTimeouts": updates.get("homeTimeouts", row["home_timeouts"]),
+            "awayTimeouts": updates.get("awayTimeouts", row["away_timeouts"]),
             "confidence": 1,
         }
         self._validate_game(candidate)

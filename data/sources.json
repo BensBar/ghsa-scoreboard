@@ -1,0 +1,48 @@
+{
+  "sources": [
+    {
+      "id": "gradick-radio",
+      "name": "Gradick Communications",
+      "kind": "radio",
+      "homepageUrl": "https://gradickcommunications.com/sports/football/",
+      "streamUrl": null,
+      "permissionStatus": "unknown",
+      "permissionNote": "Request written stream-monitoring permission before adding a direct stream URL.",
+      "enabled": false,
+      "attribution": "Gradick Communications"
+    },
+    {
+      "id": "school-social",
+      "name": "Approved school athletics account",
+      "kind": "social",
+      "homepageUrl": null,
+      "streamUrl": null,
+      "permissionStatus": "unknown",
+      "permissionNote": "Create one source per school after receiving permission.",
+      "enabled": false,
+      "attribution": "Official school athletics"
+    },
+    {
+      "id": "scoreboard-ocr",
+      "name": "Approved broadcast scoreboard OCR",
+      "kind": "ocr",
+      "homepageUrl": null,
+      "streamUrl": null,
+      "permissionStatus": "unknown",
+      "permissionNote": "Enable only for a school or broadcaster stream with written permission.",
+      "enabled": false,
+      "attribution": "Approved broadcast"
+    },
+    {
+      "id": "wsbtv-high-school-football",
+      "name": "WSB-TV High School Football",
+      "kind": "media",
+      "homepageUrl": "https://www.wsbtv.com/sports/high-school-football/",
+      "streamUrl": null,
+      "permissionStatus": "unknown",
+      "permissionNote": "WSB-TV publishes Georgia coverage and score pages, but no public data API or republication permission has been confirmed.",
+      "enabled": false,
+      "attribution": "WSB-TV Channel 2"
+    }
+  ]
+}

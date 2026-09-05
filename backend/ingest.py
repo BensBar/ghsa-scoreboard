@@ -51,6 +51,7 @@ def ingest(store: Store, feeds: list[Feed], retries: int = 2) -> dict[str, Any]:
                     team["source"] = feed.name
                     store.upsert_team(team)
                 seen = set()
+                rejected = []
                 for game in payload.get("games", []):
                     game_id = game.get("id")
                     if not game_id or game_id in seen:
@@ -58,12 +59,19 @@ def ingest(store: Store, feeds: list[Feed], retries: int = 2) -> dict[str, Any]:
                     seen.add(game_id)
                     game["source"] = feed.name
                     game["lastFeedCheck"] = utcnow()
-                    changed += int(store.upsert_game(game))
+                    try:
+                        changed += int(store.upsert_game(game))
+                    except (ValueError, KeyError) as exc:
+                        rejected.append({"gameId": game_id, "error": str(exc)})
                 store.db.commit()
                 latency = int((time.monotonic() - started) * 1000)
                 store.health(feed.name, True, None, latency)
-                return {"provider": feed.name, "changed": changed, "games": len(seen)}
+                return {
+                    "provider": feed.name, "changed": changed, "games": len(seen),
+                    "rejected": rejected,
+                }
             except (OSError, ValueError, KeyError, json.JSONDecodeError, urllib.error.URLError) as exc:
+                store.db.rollback()
                 latency = int((time.monotonic() - started) * 1000)
                 message = f"{type(exc).__name__}: {exc}"
                 store.health(feed.name, False, message, latency)

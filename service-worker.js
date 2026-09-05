@@ -2,7 +2,7 @@ const CACHE = "ghsa-scoreboard-v2";
 const SHELL = [
   "./", "index.html", "assets/app.js", "assets/styles.css",
   "data/schools.json", "public/scores.json", "manifest.webmanifest",
-  "assets/app-icon.svg"
+  "assets/app-icon.svg", "report/index.html", "report/report.js"
 ];
 
 self.addEventListener("install", (event) => {

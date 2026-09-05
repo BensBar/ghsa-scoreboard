@@ -14,6 +14,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
 from .ingest import configured_feeds, ingest
+from .score_desk import (
+    Observation, authenticate_reporter, extract_radio_observations, migrate,
+    parse_sms, register_reporter, register_source, submit_observation,
+)
 from .store import LIVE_STATUSES, Store
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -21,6 +25,12 @@ DB_PATH = Path(os.getenv("SCOREBOARD_DB", ROOT / "data" / "scoreboard.db"))
 STATIC_ROOT = ROOT
 STORE = Store(DB_PATH)
 STORE.seed(ROOT / "data" / "schools.json", ROOT / "public" / "scores.json")
+migrate(STORE)
+for configured_source in json.loads((ROOT / "data" / "sources.json").read_text())["sources"]:
+    if not STORE.db.execute(
+        "SELECT 1 FROM sources WHERE id=?", (configured_source["id"],)
+    ).fetchone():
+        register_source(STORE, configured_source)
 VERSION = threading.Condition()
 CHANGE_VERSION = 0
 CACHE: dict[str, tuple[float, bytes, str]] = {}
@@ -97,6 +107,14 @@ class Handler(BaseHTTPRequestHandler):
             })
         elif parsed.path == "/admin":
             self._file(ROOT / "admin" / "index.html", no_store=True)
+        elif parsed.path == "/report":
+            self._file(ROOT / "report" / "index.html", no_store=True)
+        elif parsed.path == "/api/v1/sources":
+            sources = [dict(row) for row in STORE.db.execute(
+                "SELECT id,name,kind,homepage_url,permission_status,attribution "
+                "FROM sources WHERE enabled=1 ORDER BY name"
+            )]
+            self._json(200, {"sources": sources})
         else:
             relative = unquote(parsed.path).lstrip("/") or "index.html"
             candidate = (STATIC_ROOT / relative).resolve()
@@ -162,18 +180,45 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Security-Policy",
                          "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                         "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'")
+                         "font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; "
+                         "frame-src https://scorestream.com")
         self.end_headers()
         self.wfile.write(body)
 
     def do_POST(self) -> None:
         parsed = urlparse(self.path)
-        if not self._authorized():
+        reporter_route = parsed.path in {
+            "/api/v1/reporters/score", "/api/v1/reporters/sms",
+        }
+        if not reporter_route and not self._authorized():
             self._json(401, {"error": "valid admin bearer token required"})
             return
         try:
             body = self._body()
-            if parsed.path == "/api/v1/admin/corrections":
+            if reporter_route:
+                reporter = authenticate_reporter(
+                    STORE, str(body.get("reporterId", "")), str(body.get("secret", ""))
+                )
+                if parsed.path.endswith("/sms"):
+                    observation = parse_sms(STORE, str(body.get("message", "")), reporter)
+                else:
+                    game = STORE.db.execute(
+                        "SELECT * FROM games WHERE id=?", (str(body.get("gameId", "")),)
+                    ).fetchone()
+                    if not game:
+                        raise KeyError(body.get("gameId"))
+                    if not ({game["home_team_id"], game["away_team_id"]} & set(reporter["teamIds"])):
+                        raise PermissionError("reporter is not assigned to this game")
+                    observation = Observation(
+                        game["id"], f"reporter:{reporter['id']}",
+                        int(body["homeScore"]), int(body["awayScore"]),
+                        body.get("status"), body.get("clock"), 0.98,
+                    )
+                result = submit_observation(STORE, observation)
+                if result["published"]:
+                    notify_change()
+                self._json(202, result)
+            elif parsed.path == "/api/v1/admin/corrections":
                 if not str(body.get("reason", "")).strip():
                     raise ValueError("reason is required")
                 ids = STORE.correct(
@@ -192,10 +237,47 @@ class Handler(BaseHTTPRequestHandler):
                 if result.get("changed"):
                     notify_change()
                 self._json(200, result)
+            elif parsed.path == "/api/v1/admin/sources":
+                register_source(STORE, body)
+                self._json(201, {"sourceId": body["id"]})
+            elif parsed.path == "/api/v1/admin/reporters":
+                register_reporter(
+                    STORE, str(body["id"]), str(body["name"]),
+                    [str(value) for value in body.get("teamIds", [])], str(body["secret"]),
+                )
+                self._json(201, {"reporterId": body["id"]})
+            elif parsed.path == "/api/v1/admin/radio-observations":
+                observations = extract_radio_observations(
+                    STORE, str(body["sourceId"]), str(body["transcript"]),
+                    str(body["gameId"]),
+                )
+                results = [submit_observation(STORE, observation) for observation in observations]
+                if any(result["published"] for result in results):
+                    notify_change()
+                self._json(202, {"extracted": len(observations), "results": results})
+            elif parsed.path == "/api/v1/admin/evidence":
+                source = STORE.db.execute(
+                    "SELECT * FROM sources WHERE id=? AND enabled=1 "
+                    "AND permission_status='granted'", (str(body["sourceId"]),)
+                ).fetchone()
+                if not source or source["kind"] not in {"social", "ocr", "media"}:
+                    raise PermissionError("evidence source is not permission-approved")
+                observation = Observation(
+                    str(body["gameId"]), source["id"], int(body["homeScore"]),
+                    int(body["awayScore"]), body.get("status"), body.get("clock"),
+                    min(float(body.get("confidence", 0.35)), 0.6),
+                    hashlib.sha256(str(body.get("evidenceId", "")).encode()).hexdigest(),
+                )
+                result = submit_observation(STORE, observation)
+                if result["published"]:
+                    notify_change()
+                self._json(202, result)
             else:
                 self._json(404, {"error": "not found"})
         except KeyError:
             self._json(404, {"error": "record not found"})
+        except PermissionError as exc:
+            self._json(403, {"error": str(exc)})
         except (TypeError, ValueError) as exc:
             self._json(400, {"error": str(exc)})
 

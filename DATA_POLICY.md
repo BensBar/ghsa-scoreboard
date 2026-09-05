@@ -19,6 +19,25 @@ No permission, pricing, coverage, or service level is assumed by this repository
 provider terms outside the public repository before deployment. MaxPreps scraping is an explicitly
 enabled, low-confidence emergency fallback and must comply with its applicable terms.
 
+The statewide ScoreStream panel is ScoreStream-hosted third-party content loaded through its public
+widget. It is not treated as this application's raw data feed.
+
+WSB-TV also publishes Georgia high school football coverage and dedicated score pages. The linked
+kickoff article confirms active editorial coverage, but no documented public feed or republication
+permission has been identified. WSB-TV remains a linked reference and disabled candidate source
+until it grants written access.
+
+## Community and media observations
+
+Trusted school reporters are explicitly enrolled, restricted to assigned teams, and authenticated
+with individual secrets. Their submissions are labeled as verified reporter data.
+
+Radio, official social posts, and scoreboard OCR are disabled by default. Each source must have a
+record showing written permission before it can be enabled. Machine-extracted observations are
+low-confidence and are published only after two matching observations within ten minutes. Radio
+audio and transcripts are not retained; only score facts and one-way evidence fingerprints are
+stored for duplicate detection and audit.
+
 ## Freshness
 
 “Last score change” identifies when score data changed. “Feed checked” identifies the most recent

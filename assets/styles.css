@@ -247,7 +247,7 @@ main { max-width: 1160px; margin: 0 auto; padding: 0.5rem 1.25rem 2rem; }
   margin-top: 1rem;
 }
 .game-tools label, .admin-form label { color: var(--muted); font-size: 0.8rem; }
-.game-tools input, .game-tools select, .admin-form input, .admin-form select {
+.game-tools input, .game-tools select, .admin-form input, .admin-form select, .admin-form textarea {
   display: block;
   margin-top: 0.25rem;
   padding: 0.65rem;
@@ -268,7 +268,17 @@ main { max-width: 1160px; margin: 0 auto; padding: 0.5rem 1.25rem 2rem; }
 .detail-score { font: 2rem "Archivo Black", sans-serif; }
 .admin-shell { max-width: 620px; }
 .admin-form { display: grid; gap: 1rem; margin-top: 2rem; }
-.admin-form input, .admin-form select { width: 100%; }
+.admin-form input, .admin-form select, .admin-form textarea { width: 100%; }
+.scorestream-widget {
+  width: 100%;
+  min-height: 620px;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+.coverage-links { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.coverage-links a { color: var(--away); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }

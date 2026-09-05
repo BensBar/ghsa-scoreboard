@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Report a score</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <main class="admin-shell">
+    <h1>Report a score</h1>
+    <p class="muted">For enrolled school, booster, and media reporters.</p>
+    <form id="report-form" class="admin-form">
+      <label>Reporter ID <input id="reporter-id" required autocomplete="username"></label>
+      <label>Reporter secret <input id="secret" type="password" required autocomplete="current-password"></label>
+      <label>Game <select id="game" required></select></label>
+      <label>Home score <input id="home-score" type="number" min="0" required></label>
+      <label>Away score <input id="away-score" type="number" min="0" required></label>
+      <label>Status
+        <select id="status" required>
+          <option>Q1</option><option>Q2</option><option>HALF</option><option>Q3</option>
+          <option>Q4</option><option>OT</option><option>FINAL</option><option>delayed</option>
+        </select>
+      </label>
+      <label>Clock <input id="clock" pattern="[0-9]{1,2}:[0-9]{2}" placeholder="4:32"></label>
+      <button class="btn-save" type="submit">Submit verified update</button>
+    </form>
+    <p id="result" role="status" aria-live="polite"></p>
+  </main>
+  <script src="report.js"></script>
+</body>
+</html>

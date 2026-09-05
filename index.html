@@ -66,11 +66,32 @@
       </div>
       <div id="top-games" class="games-list" role="list"></div>
     </section>
+
+    <section class="section" aria-labelledby="statewide-heading">
+      <div class="section-head">
+        <h2 id="statewide-heading">Statewide scores</h2>
+        <p>ScoreStream community scoreboard · third-party content</p>
+      </div>
+      <iframe class="scorestream-widget"
+        src="https://scorestream.com/apiJsCdn/widgets/scoreboard.html?id=2912"
+        title="ScoreStream Georgia high school football scoreboard"
+        loading="lazy"
+        sandbox="allow-scripts allow-same-origin allow-popups"
+        referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <p class="muted"><a href="https://scorestream.com/explore/r/georgia/high-school/football/scores"
+        target="_blank" rel="noopener noreferrer">Open the scoreboard on ScoreStream</a></p>
+      <nav class="coverage-links" aria-label="More Georgia football coverage">
+        <a href="https://www.wsbtv.com/sports/high-school-football/" target="_blank" rel="noopener noreferrer">WSB-TV</a>
+        <a href="https://www.ajc.com/sports/varsity/football/scores/" target="_blank" rel="noopener noreferrer">AJC Varsity</a>
+        <a href="https://www.gpb.org/sports/high-school-football" target="_blank" rel="noopener noreferrer">GPB Sports</a>
+        <a href="https://www.scoreatl.com/scoreboard" target="_blank" rel="noopener noreferrer">Score Atlanta</a>
+      </nav>
+    </section>
   </main>
 
   <footer class="foot">
     <p>Provider data updates in real time when available, with a 45-second polling fallback.</p>
-    <p class="muted">Unofficial and not affiliated with GHSA. Verify important results with the listed source. <a href="DATA_POLICY.md">Data policy</a></p>
+    <p class="muted">Unofficial and not affiliated with GHSA. Verify important results with the listed source. <a href="report/">Reporter desk</a> · <a href="DATA_POLICY.md">Data policy</a></p>
   </footer>
 
   <div id="favorites-picker" class="picker-overlay" hidden aria-hidden="true">

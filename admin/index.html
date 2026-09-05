@@ -28,6 +28,40 @@
       <button class="btn-save" type="submit">Apply correction</button>
     </form>
     <p id="result" role="status" aria-live="polite"></p>
+    <hr>
+    <h2>Enroll a trusted reporter</h2>
+    <form id="reporter-form" class="admin-form">
+      <label>Reporter ID <input id="new-reporter-id" required pattern="[A-Za-z0-9_-]+"></label>
+      <label>Name <input id="new-reporter-name" required></label>
+      <label>Assigned team IDs <input id="new-reporter-teams" required placeholder="carrollton,central-of-carrollton"></label>
+      <label>Secret <input id="new-reporter-secret" type="password" minlength="16" required></label>
+      <button class="btn-save" type="submit">Enroll reporter</button>
+    </form>
+    <p id="reporter-result" role="status" aria-live="polite"></p>
+    <hr>
+    <h2>Approve a source</h2>
+    <form id="source-form" class="admin-form">
+      <label>Source ID <input id="source-id" required pattern="[A-Za-z0-9_-]+"></label>
+      <label>Name <input id="source-name" required></label>
+      <label>Kind
+        <select id="source-kind"><option>radio</option><option>social</option><option>ocr</option><option>media</option></select>
+      </label>
+      <label>Homepage <input id="source-homepage" type="url"></label>
+      <label>Approved stream URL <input id="source-stream" type="url"></label>
+      <label>Permission note <input id="source-note" required placeholder="Written approval dated…"></label>
+      <button class="btn-save" type="submit">Save approved source</button>
+    </form>
+    <p id="source-result" role="status" aria-live="polite"></p>
+    <hr>
+    <h2>Review radio transcript</h2>
+    <p class="muted">Paste text produced locally from an approved stream. Transcript text is processed in memory and not retained.</p>
+    <form id="radio-form" class="admin-form">
+      <label>Approved source ID <input id="radio-source-id" required></label>
+      <label>Game <select id="radio-game" required></select></label>
+      <label>Transcript excerpt <textarea id="radio-transcript" rows="5" required></textarea></label>
+      <button class="btn-save" type="submit">Extract score observations</button>
+    </form>
+    <p id="radio-result" role="status" aria-live="polite"></p>
   </main>
   <script src="admin.js"></script>
 </body>

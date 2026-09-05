@@ -2,7 +2,8 @@
 
 A mobile-first, installable scoreboard for Georgia high school football. It supports a licensed
 live-data feed, normalized historical storage, server-sent updates, favorites, discovery filters,
-game details, feed-freshness warnings, and audited manual corrections.
+game details, feed-freshness warnings, audited manual corrections, and a permission-first community
+score desk.
 
 The hosted GitHub Pages version remains compatible with `public/scores.json`, but that file is an
 offline fallback. Production live scores require the backend.
@@ -112,6 +113,51 @@ python scripts/ingest_scores.py
 
 Admin routes require `Authorization: ****** The browser console is at
 `/admin`. Run behind TLS and an authenticating reverse proxy in production.
+
+## Multi-source score desk
+
+The homepage embeds ScoreStream's public Georgia widget for immediate statewide context. Its content
+stays hosted by ScoreStream and is not ingested into the custom scoreboard.
+
+An administrator can enroll a school, booster, or media reporter at `/admin`. The reporter submits
+at `/report`, or an SMS gateway can translate a trusted message into:
+
+```http
+POST /api/v1/reporters/sms
+Content-Type: application/json
+
+{"reporterId":"west-stand","secret":"…","message":"CAR 21 CAT 7 Q3 4:32"}
+```
+
+Keep the reporter secret in the gateway, validate the gateway's own webhook signature, and send this
+request to the backend over TLS. Reporter assignments prevent updates to unrelated games.
+
+Permission-approved radio can be transcribed locally with Whisper or another on-device engine. Pipe
+only the resulting excerpt to the processor; it never stores the transcript:
+
+```bash
+whisper /tmp/approved-station-segment.wav --model small --output_format txt --output_dir /tmp
+python scripts/process_radio_transcript.py --source gradick-radio --game GAME_ID \
+  < /tmp/approved-station-segment.txt
+rm /tmp/approved-station-segment.*
+```
+
+Register the station and its written permission in `/admin` first. Radio, approved official social,
+and permitted video-scoreboard OCR enter as low-confidence observations. They require two matching
+observations within ten minutes before changing a public score. The generic authenticated
+`POST /api/v1/admin/evidence` route accepts social/OCR observations with `sourceId`, `gameId`,
+`homeScore`, `awayScore`, an optional `status`/`clock`, and a stable `evidenceId`.
+
+Starter source records live in `data/sources.json`; none of those acquisition sources is enabled.
+Do not add stream URLs or enable monitoring until the broadcaster or school grants permission.
+
+## Partnership outreach
+
+Ask ScoreStream (`partner@scorestream.com`) about a hobby API license. For AJC Varsity, GPB,
+WSB-TV, Score Atlanta, or a local radio group, request a read-only JSON feed and written display rights.
+Offer visible attribution, outbound links, correction access, rate limits, and no transcript/audio
+redistribution. Confirm geographic coverage, update latency, historical access, caching, pricing,
+logo rights, and termination requirements before connecting a feed.
 
 ## Deployment
 
